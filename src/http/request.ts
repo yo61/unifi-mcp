@@ -18,7 +18,7 @@ export type RequestInput = {
 const agents = new Map<string, Agent>();
 const dispatcherFor = (insecureTls: boolean, caCert?: string): Agent | undefined => {
   if (!caCert && !insecureTls) return undefined;
-  const key = caCert ? `ca:${caCert.length}` : "insecure";
+  const key = caCert ? `ca:${caCert}` : "insecure";
   let agent = agents.get(key);
   if (!agent) {
     agent = new Agent(
