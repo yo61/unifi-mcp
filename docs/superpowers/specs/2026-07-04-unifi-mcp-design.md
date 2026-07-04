@@ -169,6 +169,26 @@ the HTTP verb). No re-architecture — this is the payoff of the
 spec-driven choice, and the concrete difference from a hand-modelled
 server where each write is bespoke code.
 
+## Security: TLS and secrets
+
+UniFi gateways serve a self-signed certificate. The server does **not** disable
+TLS verification by default (that would expose the connection to MITM). Instead:
+
+- Default: normal certificate verification.
+- `UNIFI_CA_CERT` (path to the controller's cert/CA PEM) → verify against it via a
+  scoped `undici` `Agent`. This is the recommended way to trust a self-signed
+  UniFi cert — trust *that* cert, not everything.
+- `UNIFI_INSECURE_TLS=true` → explicit last-resort opt-in that disables
+  verification, with a loud startup warning. Never the default.
+
+The `X-API-KEY` is read from the environment (keychain-backed in packaged
+installs) and is never logged.
+
+CI, release automation, and supply-chain scanning are a separate
+**release-engineering** effort (its own spec + plan), modelled on the process in
+`../go-udap` and `../jobhound` and intended to backport to `civi-mcp`. This spec
+covers the server only.
+
 ## Error handling
 
 Fail fast, actionable messages (per the project's standards). Distinguish:

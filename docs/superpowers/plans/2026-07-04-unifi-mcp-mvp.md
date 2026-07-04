@@ -14,7 +14,7 @@
 - **Dependencies pinned exact** (no `^`/`~`); install with `pnpm add --save-exact`. Look up current stable versions at install time — do not assume.
 - **Tool names:** `unifi_list_entities`, `unifi_describe_entity`, `unifi_get`, `unifi_invoke` (snake_case, `unifi_` prefix).
 - **Auth:** UniFi Local Integration API uses the `X-API-KEY` header (key generated in UniFi Network → Settings → Integrations). Never hard-code or log the key.
-- **TLS:** UniFi gateways serve a self-signed cert. Use a scoped `undici` `Agent` with `rejectUnauthorized` controlled by config `verifyTls` (default `false`) — never the global `NODE_TLS_REJECT_UNAUTHORIZED`.
+- **TLS:** UniFi gateways serve a self-signed cert. Default to **normal verification**. Support `UNIFI_CA_CERT` (path to the controller's cert/CA PEM) → verify against it via a scoped `undici` `Agent({ connect: { ca } })`. Support `UNIFI_INSECURE_TLS=true` as an explicit last-resort opt-in that disables verification, with a loud startup `log.warn`. Never default to disabled verification; never use the global `NODE_TLS_REJECT_UNAUTHORIZED`.
 - **Read-only v1:** only `GET` operations are exposed to `unifi_get`; `UnifiClient` refuses any non-GET method while `allowWrites === false` (default). `unifi_invoke` exists but is gated off.
 - **Spec URL default:** `<baseUrl>/proxy/network/api-docs/integration.json`. Operation base path comes from the spec's `servers[0].url`.
 - **Errors:** typed `UnifiError` subclasses; caught at the tool boundary, logged to stderr, returned as `isError` ToolResults. stdout is reserved for JSON-RPC.
@@ -59,10 +59,17 @@ test/
   unifi/client.test.ts
   mcp/tools.test.ts
   mcp/server.test.ts
-.github/workflows/ci.yml
-.github/workflows/release.yml
-.github/dependabot.yml
+README.md
+LICENSE
+.env.example
 ```
+
+> **Out of scope for this plan:** CI, release-please, publishing, supply-chain
+> scanning, commitlint, Taskfile, prek, and `decisions/`/`quality/` dirs are the
+> **release-engineering** subsystem — its own brainstorm → spec → plan cycle,
+> modelled on `../go-udap` and `../jobhound`, and designed to backport to
+> `civi-mcp`. This plan delivers a working, locally-verifiable server
+> (`pnpm verify` + git hooks), not the release pipeline.
 
 ---
 
@@ -271,7 +278,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 **Interfaces:**
 - Produces:
-  - `type Config = { baseUrl: URL; apiKey: string; specUrl: string; specFile?: string; specFreshnessMs: number; cacheDir: string; timeoutMs: number; verifyTls: boolean; allowWrites: boolean; logLevel: "error"|"warn"|"info"|"debug" }`
+  - `type Config = { baseUrl: URL; apiKey: string; specUrl: string; specFile?: string; specFreshnessMs: number; cacheDir: string; timeoutMs: number; caCert?: string; insecureTls: boolean; allowWrites: boolean; logLevel: "error"|"warn"|"info"|"debug" }` (`caCert` holds the PEM **contents**, read from the `UNIFI_CA_CERT` path at load time)
   - `loadConfig(env: Record<string, string | undefined>): Config`
 
 - [ ] **Step 1: Write the failing test**
@@ -288,9 +295,15 @@ describe("loadConfig", () => {
     const cfg = loadConfig(base);
     expect(cfg.baseUrl.host).toBe("192.168.1.1");
     expect(cfg.specUrl).toBe("https://192.168.1.1/proxy/network/api-docs/integration.json");
-    expect(cfg.verifyTls).toBe(false);
+    expect(cfg.insecureTls).toBe(false);
+    expect(cfg.caCert).toBeUndefined();
     expect(cfg.allowWrites).toBe(false);
     expect(cfg.specFreshnessMs).toBe(86_400_000);
+  });
+
+  test("insecureTls opt-in requires explicit true", () => {
+    expect(loadConfig({ ...base, UNIFI_INSECURE_TLS: "true" }).insecureTls).toBe(true);
+    expect(loadConfig({ ...base, UNIFI_INSECURE_TLS: "1" }).insecureTls).toBe(false);
   });
 
   test("rejects missing api key", () => {
@@ -317,6 +330,7 @@ Run: `pnpm vitest run test/config.test.ts`
 - [ ] **Step 3: Write `src/config.ts`**
 
 ```ts
+import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { z } from "zod";
@@ -344,7 +358,8 @@ const EnvSchema = z.object({
   UNIFI_SPEC_FRESHNESS_MS: positiveInt(86_400_000),
   UNIFI_CACHE_DIR: z.string().default(join(homedir(), ".cache", "unifi-mcp")),
   UNIFI_TIMEOUT_MS: positiveInt(30_000),
-  UNIFI_VERIFY_TLS: z.enum(["true", "false"]).default("false"),
+  UNIFI_CA_CERT: z.string().optional(),
+  UNIFI_INSECURE_TLS: z.string().default("false"),
   UNIFI_ALLOW_WRITES: z.string().default("false"),
   UNIFI_LOG_LEVEL: LogLevel.default("error"),
 });
@@ -357,7 +372,8 @@ export type Config = {
   specFreshnessMs: number;
   cacheDir: string;
   timeoutMs: number;
-  verifyTls: boolean;
+  caCert?: string;
+  insecureTls: boolean;
   allowWrites: boolean;
   logLevel: z.infer<typeof LogLevel>;
 };
@@ -380,7 +396,8 @@ export const loadConfig = (env: Record<string, string | undefined>): Config => {
     specFreshnessMs: d.UNIFI_SPEC_FRESHNESS_MS,
     cacheDir: d.UNIFI_CACHE_DIR,
     timeoutMs: d.UNIFI_TIMEOUT_MS,
-    verifyTls: d.UNIFI_VERIFY_TLS === "true",
+    ...(d.UNIFI_CA_CERT !== undefined ? { caCert: readFileSync(d.UNIFI_CA_CERT, "utf8") } : {}),
+    insecureTls: d.UNIFI_INSECURE_TLS === "true",
     allowWrites: d.UNIFI_ALLOW_WRITES === "true",
     logLevel: d.UNIFI_LOG_LEVEL,
   };
@@ -413,7 +430,8 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 - Produces:
   ```ts
   type RequestInput = {
-    url: URL; method: string; apiKey: string; timeoutMs: number; verifyTls: boolean;
+    url: URL; method: string; apiKey: string; timeoutMs: number;
+    insecureTls: boolean; caCert?: string;
     body?: unknown; operationId?: string; fetcher?: typeof fetch;
   };
   request<T>(input: RequestInput): Promise<T>;
@@ -450,7 +468,7 @@ import { UnifiApiError, UnifiAuthError, UnifiTransportError } from "../../src/ht
 import { request } from "../../src/http/request.js";
 import { mockFetch } from "../helpers/mock-fetch.js";
 
-const opts = { apiKey: "k", timeoutMs: 1000, verifyTls: false as const };
+const opts = { apiKey: "k", timeoutMs: 1000, insecureTls: false as const };
 
 describe("request", () => {
   test("sends X-API-KEY and parses JSON", async () => {
@@ -508,16 +526,31 @@ export type RequestInput = {
   method: string;
   apiKey: string;
   timeoutMs: number;
-  verifyTls: boolean;
+  insecureTls: boolean;
+  caCert?: string;
   body?: unknown;
   operationId?: string;
   fetcher?: typeof fetch;
 };
 
-const insecureAgent = new Agent({ connect: { rejectUnauthorized: false } });
+// Memoise dispatchers so we don't build a new undici Agent per request.
+// Default (no CA, not insecure) → undefined → normal TLS verification.
+const agents = new Map<string, Agent>();
+const dispatcherFor = (insecureTls: boolean, caCert?: string): Agent | undefined => {
+  if (!caCert && !insecureTls) return undefined;
+  const key = caCert ? `ca:${caCert.length}` : "insecure";
+  let agent = agents.get(key);
+  if (!agent) {
+    agent = new Agent(
+      caCert ? { connect: { ca: caCert } } : { connect: { rejectUnauthorized: false } },
+    );
+    agents.set(key, agent);
+  }
+  return agent;
+};
 
 export const request = async <T>(input: RequestInput): Promise<T> => {
-  const { url, method, apiKey, timeoutMs, verifyTls, body, operationId } = input;
+  const { url, method, apiKey, timeoutMs, insecureTls, caCert, body, operationId } = input;
   const fetcher = input.fetcher ?? fetch;
   const opId = operationId ?? `${method} ${url.pathname}`;
 
@@ -533,7 +566,9 @@ export const request = async <T>(input: RequestInput): Promise<T> => {
     },
     signal: controller.signal,
     ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
-    ...(verifyTls || input.fetcher ? {} : { dispatcher: insecureAgent }),
+    // Only attach a custom dispatcher when using the real fetch (undici).
+    // Injected test fetchers receive plain RequestInit.
+    ...(input.fetcher ? {} : { dispatcher: dispatcherFor(insecureTls, caCert) }),
   };
 
   let response: Response;
@@ -1083,7 +1118,7 @@ const cfg = (over: Partial<Config>): Config => ({
   specFreshnessMs: 1000,
   cacheDir: dir,
   timeoutMs: 200,
-  verifyTls: false,
+  insecureTls: false,
   allowWrites: false,
   logLevel: "error",
   ...over,
@@ -1139,7 +1174,8 @@ export const createSpecStore = (cfg: Config): SpecStore => {
         method: "GET",
         apiKey: cfg.apiKey,
         timeoutMs: cfg.timeoutMs,
-        verifyTls: cfg.verifyTls,
+        insecureTls: cfg.insecureTls,
+        ...(cfg.caCert !== undefined ? { caCert: cfg.caCert } : {}),
         operationId: "fetchSpec",
       }),
     readBundled: async () => JSON.parse(await readFile(cfg.specFile ?? BUNDLED, "utf8")),
@@ -1195,7 +1231,7 @@ import { mockFetch } from "../helpers/mock-fetch.js";
 const cfg = (over: Partial<Config> = {}): Config => ({
   baseUrl: new URL("https://gw"),
   apiKey: "k", specUrl: "https://gw/s.json", specFreshnessMs: 1, cacheDir: "/tmp",
-  timeoutMs: 500, verifyTls: false, allowWrites: false, logLevel: "error", ...over,
+  timeoutMs: 500, insecureTls: false, allowWrites: false, logLevel: "error", ...over,
 });
 
 const listDevices: EntityOperation = {
@@ -1277,7 +1313,8 @@ export class UnifiClient {
       method: op.method,
       apiKey: this.#cfg.apiKey,
       timeoutMs: this.#cfg.timeoutMs,
-      verifyTls: this.#cfg.verifyTls,
+      insecureTls: this.#cfg.insecureTls,
+      ...(this.#cfg.caCert !== undefined ? { caCert: this.#cfg.caCert } : {}),
       operationId: op.operationId,
       ...(args.body !== undefined ? { body: args.body } : {}),
       ...(this.#fetcher ? { fetcher: this.#fetcher } : {}),
@@ -1369,7 +1406,7 @@ import { mockFetch } from "../helpers/mock-fetch.js";
 
 const cfg: Config = {
   baseUrl: new URL("https://gw"), apiKey: "k", specUrl: "https://gw/s", specFreshnessMs: 1,
-  cacheDir: "/tmp", timeoutMs: 500, verifyTls: false, allowWrites: false, logLevel: "error",
+  cacheDir: "/tmp", timeoutMs: 500, insecureTls: false, allowWrites: false, logLevel: "error",
 };
 const index = new EntityIndex(buildResolvedSpec(mini));
 const tool = (name: string, fetcher?: typeof fetch) =>
@@ -1538,7 +1575,7 @@ import type { Config } from "../../src/config.js";
 
 const cfg: Config = {
   baseUrl: new URL("https://gw"), apiKey: "k", specUrl: "https://gw/s", specFreshnessMs: 1,
-  cacheDir: "/tmp", timeoutMs: 500, verifyTls: false, allowWrites: false, logLevel: "error",
+  cacheDir: "/tmp", timeoutMs: 500, insecureTls: false, allowWrites: false, logLevel: "error",
 };
 
 describe("buildServer", () => {
@@ -1610,6 +1647,9 @@ const main = async (): Promise<void> => {
   const cfg = loadConfig(process.env);
   const log = createLogger(cfg.logLevel);
   log.info({ baseUrl: cfg.baseUrl.toString(), allowWrites: cfg.allowWrites }, "starting unifi-mcp");
+  if (cfg.insecureTls) {
+    log.warn("UNIFI_INSECURE_TLS=true — TLS verification disabled; the connection is exposed to MITM. Prefer UNIFI_CA_CERT.");
+  }
 
   const { spec, source } = await createSpecStore(cfg).resolve();
   log.info({ source, tags: spec.tags.length, operations: spec.operations.length }, "spec resolved");
@@ -1642,111 +1682,51 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 ---
 
-### Task 12: Release engineering (CI + release + Dependabot) — designed for backport to civi-mcp
+### Task 12: Project docs (README, LICENSE, .env.example)
 
 **Files:**
-- Create: `.github/workflows/ci.yml`, `.github/workflows/release.yml`, `.github/dependabot.yml`, `README.md`, `LICENSE`, `.env.example`
+- Create: `README.md`, `LICENSE`, `.env.example`
 
 **Interfaces:**
-- Produces: a CI gate on push/PR; a tag-triggered release that publishes to npm and attaches an `.mcpb` bundle; grouped Dependabot updates with a 7-day cooldown. This is the pipeline `civi-mcp` lacks; keep steps generic so it backports.
+- Produces: the minimum docs a user needs to install and configure the server. (CI, release, and publishing are the separate release-engineering plan.)
 
-- [ ] **Step 1: Write `.github/workflows/ci.yml`** (pin actions to current SHAs; look them up)
+- [ ] **Step 1: Write `LICENSE`** — MIT, copyright holder "Robin Bowes".
 
-```yaml
-name: CI
-on:
-  push: { branches: [main] }
-  pull_request:
-permissions: { contents: read }
-jobs:
-  verify:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@<SHA>  # v5.x — look up current
-        with: { persist-credentials: false }
-      - uses: pnpm/action-setup@<SHA>  # v4.x — look up current
-      - uses: actions/setup-node@<SHA>  # v5.x — look up current
-        with: { node-version: 22, cache: pnpm }
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm verify
-```
+- [ ] **Step 2: Write `.env.example`**
 
-- [ ] **Step 2: Lint the workflow**
-
-Run: `actionlint .github/workflows/ci.yml && zizmor .github/workflows/ci.yml`
-Expected: no findings. Replace each `<SHA>` with the current pinned commit for the tagged version.
-
-- [ ] **Step 3: Write `.github/workflows/release.yml`**
-
-```yaml
-name: Release
-on:
-  push: { tags: ["v*"] }
-permissions: { contents: write }
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@<SHA>
-        with: { persist-credentials: false }
-      - uses: pnpm/action-setup@<SHA>
-      - uses: actions/setup-node@<SHA>
-        with: { node-version: 22, cache: pnpm, registry-url: "https://registry.npmjs.org" }
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm verify
-      - run: pnpm build
-      - run: pnpm mcpb   # produces .mcpb/unifi-mcp-<version>.mcpb
-      - run: pnpm publish --no-git-checks --access public
-        env: { NODE_AUTH_TOKEN: "${{ secrets.NPM_TOKEN }}" }
-      - uses: softprops/action-gh-release@<SHA>  # look up current
-        with: { files: ".mcpb/*.mcpb" }
-```
-(`pnpm mcpb` and `scripts/build-mcpb.mjs` port from civi-mcp; adapt the manifest name/entrypoint. If MCPB packaging is deferred, drop the `pnpm mcpb` step and the `files:` upload — CI/npm publish still stand alone.)
-
-- [ ] **Step 4: Write `.github/dependabot.yml`**
-
-```yaml
-version: 2
-updates:
-  - package-ecosystem: npm
-    directory: "/"
-    schedule: { interval: weekly }
-    cooldown: { default-days: 7 }
-    groups:
-      all: { patterns: ["*"] }
-  - package-ecosystem: github-actions
-    directory: "/"
-    schedule: { interval: weekly }
-    cooldown: { default-days: 7 }
-    groups:
-      actions: { patterns: ["*"] }
-```
-
-- [ ] **Step 5: Write `README.md`, `LICENSE` (MIT), `.env.example`**
-
-`.env.example`:
 ```bash
 UNIFI_BASE_URL=https://192.168.1.1
 UNIFI_API_KEY=your-integration-api-key
-# UNIFI_VERIFY_TLS=false        # gateways use self-signed certs
-# UNIFI_ALLOW_WRITES=false      # keep false until write support ships
+# TLS: gateways use self-signed certs. Prefer pinning the controller's CA:
+# UNIFI_CA_CERT=/path/to/controller-ca.pem
+# Last resort only (disables verification, MITM-exposed):
+# UNIFI_INSECURE_TLS=false
+# UNIFI_ALLOW_WRITES=false        # keep false until write support ships
 # UNIFI_SPEC_FRESHNESS_MS=86400000
 # UNIFI_LOG_LEVEL=error
 ```
-`README.md`: cover what it is, the four tools, the read-only stance, install/config, and the spec-source cascade (adapt structure from `../civi-mcp/README.md`).
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 3: Write `README.md`**
+
+Cover, in prose adapted from `../civi-mcp/README.md`: what it is (spec-driven MCP for the UniFi Local Integration API); the four tools (`unifi_list_entities`, `unifi_describe_entity`, `unifi_get`, `unifi_invoke`); the read-only stance and how to enable writes later; install/config via the env vars above; the TLS guidance (prefer `UNIFI_CA_CERT`); and the three-source spec cascade (fresh cache → live → stale-cache/bundled).
+
+- [ ] **Step 4: Full verify + commit**
+
+Run: `pnpm verify`
+Expected: all clean, all tests pass.
 
 ```bash
 git add -A
-git commit -m "ci: add CI, release, and dependabot pipeline
-
-Portable pipeline intended for backport to civi-mcp.
+git commit -m "docs: add README, LICENSE, and .env.example
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 
----
+> **Next cycle (separate plan): release engineering.** Adopt the yo61 house
+> process from `../go-udap` and `../jobhound` — release-please, npm provenance
+> (OIDC, no token), Taskfile, commitlint, zizmor/actionlint, dependabot,
+> prek, a supply-chain security workflow, a Claude Code review workflow, and
+> `decisions/`/`quality/` dirs — then backport it to `civi-mcp`.
 
 ## Self-Review
 
@@ -1757,14 +1737,15 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 - Read-only v1, two-place enforcement → EntityIndex `findReadOperation` (Task 6) + UnifiClient gate (Task 9) ✓
 - Write seam (`unifi_invoke` defined, gated) → Task 10 ✓
 - Discoverability (list → describe → get) → Task 10 ✓
-- `X-API-KEY`, self-signed TLS → Tasks 3, 4 ✓
+- `X-API-KEY` auth → Tasks 3, 4 ✓
+- TLS: default verification; `UNIFI_CA_CERT` pin; `UNIFI_INSECURE_TLS` explicit opt-in + startup warn → Tasks 3 (config), 4 (`dispatcherFor`), 11 (cli warn) ✓
 - Error handling (typed, boundary-caught, stderr) → Tasks 2, 10 ✓
 - Testing without a live controller → fixtures + injected deps throughout ✓
 - Bundled-spec maintenance script → Task 5 ✓
 - Stack matches civi-mcp; tooling reuse map → Tasks 1, 2 ✓
-- Release pipeline (new, for backport) → Task 12 ✓
-- Optional skill / MCPB packaging → noted as fast-follow (Task 12 step 3 note); not v1-blocking ✓
+- Project docs (README/LICENSE/.env.example) → Task 12 ✓
+- Release pipeline, CI, skill, MCPB packaging → deferred to the release-engineering plan (see Out-of-scope note) — intentionally not in this plan ✓
 
-**Placeholder scan:** `<SHA>` placeholders in Task 12 are intentional and carry explicit "look up current" instructions with the `actionlint`/`zizmor` gate; the bundled-spec source is a named commit pin. No silent TODOs.
+**Placeholder scan:** No `<SHA>` or CI placeholders remain (release engineering moved out). The bundled-spec source is a named commit pin (Task 5). No silent TODOs.
 
 **Type consistency:** `EntityOperation` / `ResolvedSpec` / `EntitySummary` / `EntityDescribe` defined in Task 5, consumed unchanged in 6/9/10. `request(RequestInput)` (Task 4) consumed by Tasks 8, 9. `ToolResult` defined in Task 10 (`errors-to-result.ts`), re-exported via `tools.ts`. `buildResolvedSpec` + `EntityIndex` names consistent across 6/7/8/10/11. `UnifiClient.invoke(op, args)` signature consistent 9/10. ✓
