@@ -1353,7 +1353,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
   ```ts
   type ToolResult = { content: ReadonlyArray<{ type: "text"; text: string }>; isError?: boolean };
   wrapHandler<A>(toolName: string, handler: (a: A) => Promise<ToolResult>, log: Logger): (a: A) => Promise<ToolResult>;
-  buildTools(index: EntityIndex, client: UnifiClient): AnyTool[]; // 4 tools; each { name, description, inputSchema, handler }
+  buildTools(index: EntityIndex, client: UnifiClient, log: Logger): AnyTool[]; // 4 tools; handlers already wrapped with wrapHandler(log)
   ```
 
 - [ ] **Step 1: Write `src/mcp/errors-to-result.ts`** — adapt civi's `wrapHandler`:
@@ -1473,7 +1473,11 @@ const invokeArgs = {
   body: z.unknown().optional(),
 };
 
-export const buildTools = (index: EntityIndex, client: UnifiClient): AnyTool[] => [
+// Executed design (commit 7d04ec4): buildTools takes `log: Logger` and wraps
+// each handler below with `wrapHandler(name, handler, log)` before returning it,
+// so the MCP server registers pre-wrapped handlers (no second wrap). AnyTool.handler
+// is typed `(args: never)`; cast each wrapped handler `as AnyTool["handler"]`.
+export const buildTools = (index: EntityIndex, client: UnifiClient, log: Logger): AnyTool[] => [
   {
     name: "unifi_list_entities",
     description:
@@ -1561,7 +1565,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 - Test: `test/mcp/server.test.ts`
 
 **Interfaces:**
-- Consumes: `buildTools` (Task 10), `wrapHandler` (Task 10), `EntityIndex` (Task 6), `UnifiClient` (Task 9), `createSpecStore` (Task 8), `loadConfig` (Task 3), `createLogger` (Task 2).
+- Consumes: `buildTools` (Task 10 — already wraps handlers, takes the logger), `EntityIndex` (Task 6), `UnifiClient` (Task 9), `createSpecStore` (Task 8), `loadConfig` (Task 3), `createLogger` (Task 2).
 - Produces: `buildServer(index, client, log): UnifiMcpServer` with `_registeredToolNames(): readonly string[]`; `cli.ts` default entrypoint.
 
 - [ ] **Step 1: Write the failing test**
@@ -1603,7 +1607,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { Logger } from "../logging.js";
 import type { EntityIndex } from "../spec/index.js";
 import type { UnifiClient } from "../unifi/client.js";
-import { wrapHandler, type ToolResult } from "./errors-to-result.js";
+import type { ToolResult } from "./errors-to-result.js";
 import { buildTools } from "./tools.js";
 
 export type UnifiMcpServer = McpServer & { _registeredToolNames(): readonly string[] };
@@ -1612,14 +1616,15 @@ export const buildServer = (index: EntityIndex, client: UnifiClient, log: Logger
   const server = new McpServer({ name: "unifi-mcp", version: "0.1.0" }) as UnifiMcpServer;
   const registered: string[] = [];
 
-  for (const t of buildTools(index, client)) {
-    const safe = wrapHandler(t.name, t.handler as (a: unknown) => Promise<ToolResult>, log);
+  // buildTools already wraps each handler (wrapHandler) with this logger, so
+  // register the handlers directly — do not wrap a second time.
+  for (const t of buildTools(index, client, log)) {
     server.registerTool(
       t.name,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       { description: t.description, inputSchema: t.inputSchema as any },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (async (args: unknown) => safe(args)) as any,
+      (async (args: unknown) => (t.handler as (a: unknown) => Promise<ToolResult>)(args)) as any,
     );
     registered.push(t.name);
   }
