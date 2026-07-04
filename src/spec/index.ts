@@ -34,6 +34,8 @@ export const buildResolvedSpec = (deref: unknown): ResolvedSpec => {
       if (!op) continue;
       const tag = op.tags?.[0] ?? "Untagged";
       const params = op.parameters ?? [];
+      const requestBodySchema = jsonSchema(op.requestBody);
+      const responseSchema = jsonSchema(op.responses?.["200"]);
       operations.push({
         operationId: op.operationId ?? `${method.toUpperCase()} ${path}`,
         tag,
@@ -49,10 +51,8 @@ export const buildResolvedSpec = (deref: unknown): ResolvedSpec => {
             required: p.required === true,
             ...(p.description !== undefined ? { description: p.description } : {}),
           })),
-        ...(jsonSchema(op.requestBody) !== undefined ? { requestBodySchema: jsonSchema(op.requestBody) } : {}),
-        ...(jsonSchema(op.responses?.["200"]) !== undefined
-          ? { responseSchema: jsonSchema(op.responses?.["200"]) }
-          : {}),
+        ...(requestBodySchema !== undefined ? { requestBodySchema } : {}),
+        ...(responseSchema !== undefined ? { responseSchema } : {}),
       });
     }
   }
@@ -72,6 +72,9 @@ export class EntityIndex {
 
   constructor(spec: ResolvedSpec) {
     this.#spec = spec;
+    for (const { name } of spec.tags) {
+      this.#byTag.set(name, []);
+    }
     for (const op of spec.operations) {
       const list = this.#byTag.get(op.tag) ?? [];
       list.push(op);

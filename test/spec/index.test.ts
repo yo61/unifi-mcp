@@ -28,3 +28,33 @@ describe("EntityIndex", () => {
     expect(() => index.findReadOperation("Devices", "adoptDevice")).toThrow(/not a read/i);
   });
 });
+
+describe("EntityIndex — declared-but-empty tag", () => {
+  const emptyTagSpec = buildResolvedSpec({
+    tags: [{ name: "Ping" }, { name: "Devices" }],
+    paths: {
+      "/devices": {
+        get: {
+          operationId: "listDevices",
+          tags: ["Devices"],
+          responses: {},
+        },
+      },
+    },
+  });
+  const emptyIndex = new EntityIndex(emptyTagSpec);
+
+  test("listEntities includes Ping with readOps:0 writeOps:0", () => {
+    const entities = emptyIndex.listEntities();
+    expect(entities.find((e) => e.name === "Ping")).toMatchObject({ readOps: 0, writeOps: 0 });
+  });
+
+  test("describeEntity returns empty operations for declared-but-empty tag", () => {
+    const result = emptyIndex.describeEntity("Ping");
+    expect(result).toEqual({ entity: "Ping", operations: [] });
+  });
+
+  test("describeEntity still throws for a tag neither declared nor on any operation", () => {
+    expect(() => emptyIndex.describeEntity("Nonexistent")).toThrow(/unknown entity/i);
+  });
+});
