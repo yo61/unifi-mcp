@@ -4,6 +4,7 @@
 
 dist/
 node_modules/
+spec/
 coverage/
 .vitest-cache/
 

@@ -1,0 +1,47 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "Mini", "version": "1.0.0" },
+  "servers": [{ "url": "/proxy/network/integration" }],
+  "tags": [
+    { "name": "Sites", "description": "Sites on this controller" },
+    { "name": "Devices", "description": "UniFi devices" }
+  ],
+  "paths": {
+    "/v1/sites": {
+      "get": {
+        "operationId": "listSites",
+        "tags": ["Sites"],
+        "summary": "List sites",
+        "responses": {
+          "200": { "content": { "application/json": { "schema": { "type": "object" } } } }
+        }
+      }
+    },
+    "/v1/sites/{siteId}/devices": {
+      "get": {
+        "operationId": "listDevices",
+        "tags": ["Devices"],
+        "summary": "List devices",
+        "parameters": [
+          { "name": "siteId", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "content": { "application/json": { "schema": { "type": "object" } } } }
+        }
+      },
+      "post": {
+        "operationId": "adoptDevice",
+        "tags": ["Devices"],
+        "summary": "Adopt device",
+        "parameters": [
+          { "name": "siteId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object" } } } },
+        "responses": {
+          "200": { "content": { "application/json": { "schema": { "type": "object" } } } }
+        }
+      }
+    }
+  }
+}

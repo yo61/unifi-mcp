@@ -12,5 +12,5 @@
     "no-debugger": "error"
   },
   "env": { "node": true, "es2024": true },
-  "ignorePatterns": ["dist", "node_modules"]
+  "ignorePatterns": ["dist", "node_modules", "spec"]
 }
