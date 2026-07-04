@@ -3,7 +3,7 @@
   "info": {
     "title": "UniFi Network Controller API (Static Inference Draft)",
     "version": "0.1.0",
-    "description": "This is a working guide towards Unifi Network APIs.\n\n This was compiled by mutliple different methods to try to reverse all the APIs Unifi offers    \n\nGetting started (what and why)\n- Auth choices: API Key (Integration v1) or session cookies (Controller v2).\n- First call: list sites or devices; then paginate through results.\n\nCore concepts (how)\n- Pagination: v1 responses include `offset`, `limit`, `count`, `totalCount`; v2 responses include `meta`.\n- Filtering (v1): use `filter` with functions like `eq`, `in`, `isNotNull`, `gt`, `and(...)`, `or(...)`.\n- Idempotency: not supported; use client de\u2011duplication + safe retries with backoff.\n- Versioning: v1 under `/integration/v1/*`; v2 under `/v2/api/*`. Backwards\u2011compatible additions are allowed.\n- Rate limits: handle 429 with exponential backoff and jitter; include an `X-Request-Id` for tracing.\n- Errors: structured error object with `statusCode`, `statusName`, `message`, and request metadata.\n\nReading the reference\n- Each operation has a clear summary, well\u2011typed parameters, and concrete request/response examples.\n- Code samples (curl + selected SDKs) appear in the right panel where available.\n\n4) Idempotency\n- Idempotency keys are not currently supported. Use client de\u2011duplication and retries with\n  exponential backoff for 5xx/429. Only retry non\u2011idempotent actions when safe.\n\n5) Versioning\n- Integration v1: `/integration/v1/*` (API keys), Controller v2: `/v2/api/*` (cookies).\n- Backwards\u2011compatible changes may add fields/endpoints. Breaking changes ship under new paths.\n- Prefer v1 for cross\u2011site integrations; v2 for controller\u2011local features.\n\n6) Rate Limits\n- On 429, back off with jitter and avoid large concurrent bursts. Include `X-Request-Id` for tracing.\n\n7) Best Practices\n- Retries with backoff (5xx/429), sensible timeouts, bounded concurrency, consistent naming and units.\n- Parse structured errors and surface actionable messages.\n\n8) Errors & Envelopes\n- Error shape (v1): `{ statusCode, statusName, message, timestamp, requestPath, requestId }`.\n- v1 lists: `{ offset, limit, count, totalCount, data }`; v2 lists: `{ data, meta }`.\n\n9) Research Methodology & Authoring\n- Schemas inferred from UI bundles and official docs, then validated with examples.\n- Authoring checklist: summary, description, tags, operationId; request/response schemas; 200 example;\n  at least one 4xx example for writes; enums and required fields set.\n\n"
+    "description": "This is a working guide towards Unifi Network APIs.\n\n This was compiled by mutliple different methods to try to reverse all the APIs Unifi offers    \n\nGetting started (what and why)\n- Auth choices: API Key (Integration v1) or session cookies (Controller v2).\n- First call: list sites or devices; then paginate through results.\n\nCore concepts (how)\n- Pagination: v1 responses include `offset`, `limit`, `count`, `totalCount`; v2 responses include `meta`.\n- Filtering (v1): use `filter` with functions like `eq`, `in`, `isNotNull`, `gt`, `and(...)`, `or(...)`.\n- Idempotency: not supported; use client de‑duplication + safe retries with backoff.\n- Versioning: v1 under `/integration/v1/*`; v2 under `/v2/api/*`. Backwards‑compatible additions are allowed.\n- Rate limits: handle 429 with exponential backoff and jitter; include an `X-Request-Id` for tracing.\n- Errors: structured error object with `statusCode`, `statusName`, `message`, and request metadata.\n\nReading the reference\n- Each operation has a clear summary, well‑typed parameters, and concrete request/response examples.\n- Code samples (curl + selected SDKs) appear in the right panel where available.\n\n4) Idempotency\n- Idempotency keys are not currently supported. Use client de‑duplication and retries with\n  exponential backoff for 5xx/429. Only retry non‑idempotent actions when safe.\n\n5) Versioning\n- Integration v1: `/integration/v1/*` (API keys), Controller v2: `/v2/api/*` (cookies).\n- Backwards‑compatible changes may add fields/endpoints. Breaking changes ship under new paths.\n- Prefer v1 for cross‑site integrations; v2 for controller‑local features.\n\n6) Rate Limits\n- On 429, back off with jitter and avoid large concurrent bursts. Include `X-Request-Id` for tracing.\n\n7) Best Practices\n- Retries with backoff (5xx/429), sensible timeouts, bounded concurrency, consistent naming and units.\n- Parse structured errors and surface actionable messages.\n\n8) Errors & Envelopes\n- Error shape (v1): `{ statusCode, statusName, message, timestamp, requestPath, requestId }`.\n- v1 lists: `{ offset, limit, count, totalCount, data }`; v2 lists: `{ data, meta }`.\n\n9) Research Methodology & Authoring\n- Schemas inferred from UI bundles and official docs, then validated with examples.\n- Authoring checklist: summary, description, tags, operationId; request/response schemas; 200 example;\n  at least one 4xx example for writes; enums and required fields set.\n\n"
   },
   "x-tagGroups": [
     {
@@ -174,7 +174,7 @@
     },
     {
       "name": "Schemas",
-      "description": "Core data models (Redoc **Models**). See the built\u2011in **Models** section at the bottom."
+      "description": "Core data models (Redoc **Models**). See the built‑in **Models** section at the bottom."
     },
     {
       "name": "Parameters",
@@ -971,7 +971,7 @@
           },
           "auto_upgrade_hour": {
             "type": "string",
-            "description": "Hour of day (0\u201323) or empty",
+            "description": "Hour of day (0–23) or empty",
             "pattern": "^(?:[0-9]|1[0-9]|2[0-3])?$"
           },
           "boot_sound": {
@@ -1067,7 +1067,7 @@
           },
           "x_password": {
             "type": "string",
-            "description": "8\u201332 chars, no quotes",
+            "description": "8–32 chars, no quotes",
             "pattern": "^[^'\"]{8,32}$"
           }
         },
@@ -1950,7 +1950,7 @@
           },
           "protocol": {
             "type": "string",
-            "description": "Numeric (0\u2013255) or keyword (tcp, udp, icmp, ...)"
+            "description": "Numeric (0–255) or keyword (tcp, udp, icmp, ...)"
           },
           "src_port": {
             "type": "integer",
@@ -5009,7 +5009,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 32,
-            "description": "SSID name (1\u201332 chars)"
+            "description": "SSID name (1–32 chars)"
           },
           "networkconf_id": {
             "type": "string"
@@ -5040,7 +5040,7 @@
           },
           "x_passphrase": {
             "type": "string",
-            "description": "WPA-PSK passphrase (8\u2013255 printable ASCII) or 64 hex",
+            "description": "WPA-PSK passphrase (8–255 printable ASCII) or 64 hex",
             "anyOf": [
               {
                 "pattern": "^[ -~]{8,255}$"
@@ -5295,7 +5295,7 @@
           },
           "rule_index": {
             "type": "integer",
-            "description": "Position index (2000\u201349999)",
+            "description": "Position index (2000–49999)",
             "minimum": 2000,
             "maximum": 49999
           },
@@ -5312,7 +5312,7 @@
           },
           "protocol": {
             "type": "string",
-            "description": "Matches numeric (0\u2013255) or well-known keywords (tcp, udp, icmp, etc.)"
+            "description": "Matches numeric (0–255) or well-known keywords (tcp, udp, icmp, etc.)"
           },
           "src_mac_address": {
             "type": "string",
@@ -5654,7 +5654,7 @@
               "minimum": 0,
               "default": 0
             },
-            "description": "Starting index of the page (0\u2011based)."
+            "description": "Starting index of the page (0‑based)."
           },
           {
             "name": "limit",
@@ -6257,7 +6257,7 @@
           {
             "lang": "curl",
             "label": "Example (SETUP_COMPLETED)",
-            "source": "curl -X GET 'https://<controller>/proxy/network/v2/api/system/event/SETUP_COMPLETED/first' "
+            "source": "curl -X GET 'https://<controller>/proxy/network/v2/api/system/event/SETUP_COMPLETED/first'"
           }
         ]
       }
@@ -22159,8 +22159,8 @@
         "tags": [
           "Traffic"
         ],
-        "summary": "AP 5\u2011minute report",
-        "description": "Returns AP\u2011level metrics in 5\u2011minute buckets for specified AP MACs.",
+        "summary": "AP 5‑minute report",
+        "description": "Returns AP‑level metrics in 5‑minute buckets for specified AP MACs.",
         "operationId": "postApiSiteStatReport5minAp",
         "parameters": [
           {
@@ -22317,8 +22317,8 @@
         "tags": [
           "Traffic"
         ],
-        "summary": "Site 5\u2011minute report",
-        "description": "Returns site\u2011level traffic and WiFi utilization metrics aggregated in 5\u2011minute buckets.",
+        "summary": "Site 5‑minute report",
+        "description": "Returns site‑level traffic and WiFi utilization metrics aggregated in 5‑minute buckets.",
         "operationId": "postApiSiteStatReport5minSite",
         "parameters": [
           {
@@ -22850,7 +22850,7 @@
           "Settings"
         ],
         "summary": "GET /users/api/v2/identity/network/info",
-        "description": "Identity \u203a Network integration status and info.\n\ncURL Example:\ncurl -X GET 'https://<controller>/proxy/users/api/v2/identity/network/info'\n",
+        "description": "Identity › Network integration status and info.\n\ncURL Example:\ncurl -X GET 'https://<controller>/proxy/users/api/v2/identity/network/info'\n",
         "operationId": "getUsersApiV2IdentityNetworkInfo",
         "responses": {
           "200": {
@@ -22903,7 +22903,7 @@
           "Settings"
         ],
         "summary": "GET /users/api/v2/identity/network/prerequisite",
-        "description": "Identity \u203a Network prerequisites (VPN and WiFi readiness).\n\ncURL Example:\ncurl -X GET 'https://<controller>/proxy/users/api/v2/identity/network/prerequisite'\n",
+        "description": "Identity › Network prerequisites (VPN and WiFi readiness).\n\ncURL Example:\ncurl -X GET 'https://<controller>/proxy/users/api/v2/identity/network/prerequisite'\n",
         "operationId": "getUsersApiV2IdentityNetworkPrerequisite",
         "responses": {
           "200": {
@@ -23354,12 +23354,6 @@
           "200": {
             "description": "OK"
           },
-          "4XX": {
-            "$ref": "#/components/responses/Error4xx"
-          },
-          "5XX": {
-            "$ref": "#/components/responses/Error5xx"
-          },
           "404": {
             "description": "Not found",
             "content": {
@@ -23388,6 +23382,12 @@
                 }
               }
             }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error4xx"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error5xx"
           }
         }
       }
@@ -24697,7 +24697,7 @@
           "Clients"
         ],
         "summary": "GET /v2/api/site/{site}/client/{MAC_ADDRESS}/24hr-satisfaction",
-        "description": "Get a client's 24-hour Wi\u2011Fi satisfaction timeseries.\n\ncURL Example:\ncurl -X GET 'https://<controller>/proxy/network/v2/api/site/{site}/client/{MAC_ADDRESS}/24hr-satisfaction?mac={MAC_ADDRESS}'\n",
+        "description": "Get a client's 24-hour Wi‑Fi satisfaction timeseries.\n\ncURL Example:\ncurl -X GET 'https://<controller>/proxy/network/v2/api/site/{site}/client/{MAC_ADDRESS}/24hr-satisfaction?mac={MAC_ADDRESS}'\n",
         "operationId": "getV2ClientSatisfaction24h",
         "parameters": [
           {
@@ -26219,7 +26219,7 @@
         ],
         "summary": "All schemas (models)",
         "operationId": "getComponentsSchemasDoc",
-        "description": "Redoc renders all schemas in the **Models** section automatically.\n                Use this page to quickly scan schema names or jump directly to Models.\n\n                \ud83d\udc49 **Jump to Models:** scroll to the bottom or use the left sidebar link **Models**.\n\n                **Defined schema objects**\n\n                - `AclRule`\n- `AuthenticationRequest`\n- `BgpConfig`\n- `BroadcastGroup`\n- `ChannelPlan`\n- `ChannelPlanBlacklistEntry`\n- `ChannelPlanCoupling`\n- `ChannelPlanRadioEntry`\n- `ChannelPlanSatisfaction`\n- `DashboardDefinition`\n- `DeviceCommandRequest`\n- `DeviceUpdate`\n- `DhcpOption`\n- `DpiApp`\n- `DpiGroup`\n- `DynamicDnsConfig`\n- `EnvelopeList`\n- `EnvelopeObject`\n- `Error`\n- `ExcludedIp`\n- `ExcludedIpCreate`\n- `FirewallGroup`\n- `FirewallRule`\n- `HeatMap`\n- `HeatMapPoint`\n- `Hotspot2Conf`\n- `HotspotOperator`\n- `HotspotPackage`\n- `LanNetwork`\n- `MacAddress`\n- `MapInfo`\n- `MediaFile`\n- `Meta`\n- `NatRule`\n- `PortConfig`\n- `PortForwardAdvanced`\n- `PortForwardRule`\n- `PortForwardSource`\n- `PortProfilesDefaults`\n- `QosMarking`\n- `QosMatching`\n- `QosPolicy`\n- `QosProfile`\n- `QosRule`\n- `RadiusProfile`\n- `ScheduleTask`\n- `SettingsAutoSpeedtest`\n- `SettingsBaresip`\n- `SettingsBroadcast`\n- `SettingsConnectivity`\n- `SettingsCountry`\n- `SettingsDPI`\n- `SettingsDashboard`\n- `SettingsDoh`\n- `SettingsElementAdopt`\n- `SettingsEtherLighting`\n- `SettingsEvaluationScore`\n- `SettingsGlobalAP`\n- `SettingsGlobalNat`\n- `SettingsGlobalNetworkUpdate`\n- `SettingsGlobalSwitchUpdate`\n- `SettingsGuestAccess`\n- `SettingsIPS`\n- `SettingsLCM`\n- `SettingsLocale`\n- `SettingsMDNS`\n- `SettingsMagicSiteToSiteVPN`\n- `SettingsMgmt`\n- `SettingsNTP`\n- `SettingsNetflow`\n- `SettingsNetworkOptimization`\n- `SettingsPorta`\n- `SettingsRadioAI`\n- `SettingsRadius`\n- `SettingsRoamingAssistant`\n- `SettingsSnmp`\n- `SettingsSslInspection`\n- `SettingsSuperCloudAccess`\n- `SettingsSuperFwUpdate`\n- `SettingsSuperIdentity`\n- `SettingsSuperMail`\n- `SettingsSuperMgmt`\n- `SettingsSuperSdn`\n- `SettingsSuperSmtp`\n- `SettingsSyslog`\n- `SettingsTeleport`\n- `SettingsTrafficFlow`\n- `SettingsUSG`\n- `SettingsUSW`\n- `SiteId`\n- `SpatialRecord`\n- `StaticDnsRecord`\n- `StaticRoute`\n- `SystemLogItem`\n- `TagGroup`\n- `UserGroup`\n- `UserRecord`\n- `V1AuthorizationInfo`\n- `V1AuthorizationUsage`\n- `V1ClientAccessOverview`\n- `V1ClientActionRequest`\n- `V1ClientActionResponse`\n- `V1ClientActionResult`\n- `V1ClientDetails`\n- `V1ClientDetailsBase`\n- `V1ClientOverview`\n- `V1ClientOverviewBase`\n- `V1DeviceActionRequest`\n- `V1DeviceDetails`\n- `V1DeviceInterfacesPorts`\n- `V1DeviceInterfacesRadios`\n- `V1DeviceLatestStatistics`\n- `V1DeviceOverview`\n- `V1DeviceRestartRequest`\n- `V1Error`\n- `V1GuestAuthorizeRequest`\n- `V1GuestAuthorizeResponse`\n- `V1GuestUnauthorizeRequest`\n- `V1GuestUnauthorizeResponse`\n- `V1PageBase`\n- `V1Port`\n- `V1PortActionRequest`\n- `V1PortPoE`\n- `V1PortPoEPowerCycleRequest`\n- `V1Radio`\n- `V1RadioStats`\n- `V1SiteOverview`\n- `V1TeleportClientDetails`\n- `V1TeleportClientOverview`\n- `V1UplinkRef`\n- `V1UplinkStats`\n- `V1Voucher`\n- `V1VpnClientDetails`\n- `V1VpnClientOverview`\n- `V1WiredClientDetails`\n- `V1WiredClientOverview`\n- `V1WirelessClientDetails`\n- `V1WirelessClientOverview`\n- `VirtualDevice`\n- `Wall`\n- `WanNetwork`\n- `WiFiPerformanceSummary`\n- `WiFiStatsAP`\n- `WiFiStatsRadio`\n- `WifiSSID`\n- `WireguardUser`\n- `WlanGroup`",
+        "description": "Redoc renders all schemas in the **Models** section automatically.\n                Use this page to quickly scan schema names or jump directly to Models.\n\n                👉 **Jump to Models:** scroll to the bottom or use the left sidebar link **Models**.\n\n                **Defined schema objects**\n\n                - `AclRule`\n- `AuthenticationRequest`\n- `BgpConfig`\n- `BroadcastGroup`\n- `ChannelPlan`\n- `ChannelPlanBlacklistEntry`\n- `ChannelPlanCoupling`\n- `ChannelPlanRadioEntry`\n- `ChannelPlanSatisfaction`\n- `DashboardDefinition`\n- `DeviceCommandRequest`\n- `DeviceUpdate`\n- `DhcpOption`\n- `DpiApp`\n- `DpiGroup`\n- `DynamicDnsConfig`\n- `EnvelopeList`\n- `EnvelopeObject`\n- `Error`\n- `ExcludedIp`\n- `ExcludedIpCreate`\n- `FirewallGroup`\n- `FirewallRule`\n- `HeatMap`\n- `HeatMapPoint`\n- `Hotspot2Conf`\n- `HotspotOperator`\n- `HotspotPackage`\n- `LanNetwork`\n- `MacAddress`\n- `MapInfo`\n- `MediaFile`\n- `Meta`\n- `NatRule`\n- `PortConfig`\n- `PortForwardAdvanced`\n- `PortForwardRule`\n- `PortForwardSource`\n- `PortProfilesDefaults`\n- `QosMarking`\n- `QosMatching`\n- `QosPolicy`\n- `QosProfile`\n- `QosRule`\n- `RadiusProfile`\n- `ScheduleTask`\n- `SettingsAutoSpeedtest`\n- `SettingsBaresip`\n- `SettingsBroadcast`\n- `SettingsConnectivity`\n- `SettingsCountry`\n- `SettingsDPI`\n- `SettingsDashboard`\n- `SettingsDoh`\n- `SettingsElementAdopt`\n- `SettingsEtherLighting`\n- `SettingsEvaluationScore`\n- `SettingsGlobalAP`\n- `SettingsGlobalNat`\n- `SettingsGlobalNetworkUpdate`\n- `SettingsGlobalSwitchUpdate`\n- `SettingsGuestAccess`\n- `SettingsIPS`\n- `SettingsLCM`\n- `SettingsLocale`\n- `SettingsMDNS`\n- `SettingsMagicSiteToSiteVPN`\n- `SettingsMgmt`\n- `SettingsNTP`\n- `SettingsNetflow`\n- `SettingsNetworkOptimization`\n- `SettingsPorta`\n- `SettingsRadioAI`\n- `SettingsRadius`\n- `SettingsRoamingAssistant`\n- `SettingsSnmp`\n- `SettingsSslInspection`\n- `SettingsSuperCloudAccess`\n- `SettingsSuperFwUpdate`\n- `SettingsSuperIdentity`\n- `SettingsSuperMail`\n- `SettingsSuperMgmt`\n- `SettingsSuperSdn`\n- `SettingsSuperSmtp`\n- `SettingsSyslog`\n- `SettingsTeleport`\n- `SettingsTrafficFlow`\n- `SettingsUSG`\n- `SettingsUSW`\n- `SiteId`\n- `SpatialRecord`\n- `StaticDnsRecord`\n- `StaticRoute`\n- `SystemLogItem`\n- `TagGroup`\n- `UserGroup`\n- `UserRecord`\n- `V1AuthorizationInfo`\n- `V1AuthorizationUsage`\n- `V1ClientAccessOverview`\n- `V1ClientActionRequest`\n- `V1ClientActionResponse`\n- `V1ClientActionResult`\n- `V1ClientDetails`\n- `V1ClientDetailsBase`\n- `V1ClientOverview`\n- `V1ClientOverviewBase`\n- `V1DeviceActionRequest`\n- `V1DeviceDetails`\n- `V1DeviceInterfacesPorts`\n- `V1DeviceInterfacesRadios`\n- `V1DeviceLatestStatistics`\n- `V1DeviceOverview`\n- `V1DeviceRestartRequest`\n- `V1Error`\n- `V1GuestAuthorizeRequest`\n- `V1GuestAuthorizeResponse`\n- `V1GuestUnauthorizeRequest`\n- `V1GuestUnauthorizeResponse`\n- `V1PageBase`\n- `V1Port`\n- `V1PortActionRequest`\n- `V1PortPoE`\n- `V1PortPoEPowerCycleRequest`\n- `V1Radio`\n- `V1RadioStats`\n- `V1SiteOverview`\n- `V1TeleportClientDetails`\n- `V1TeleportClientOverview`\n- `V1UplinkRef`\n- `V1UplinkStats`\n- `V1Voucher`\n- `V1VpnClientDetails`\n- `V1VpnClientOverview`\n- `V1WiredClientDetails`\n- `V1WiredClientOverview`\n- `V1WirelessClientDetails`\n- `V1WirelessClientOverview`\n- `VirtualDevice`\n- `Wall`\n- `WanNetwork`\n- `WiFiPerformanceSummary`\n- `WiFiStatsAP`\n- `WiFiStatsRadio`\n- `WifiSSID`\n- `WireguardUser`\n- `WlanGroup`",
         "responses": {
           "204": {
             "description": "Documentation-only endpoint (no content)"

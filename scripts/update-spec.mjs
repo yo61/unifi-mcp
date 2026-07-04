@@ -11,7 +11,12 @@ const SRC =
 
 const res = await fetch(SRC);
 if (!res.ok) throw new Error(`update-spec: ${res.status} fetching ${SRC}`);
-const spec = YAML.parse(await res.text());
+const rawText = await res.text();
+// The upstream YAML contains malformed double-quoted scalars where the closing
+// " appears at column 1 on the next line rather than on the same line.  The JS
+// yaml parser rejects these even in lenient mode, so we normalise them first.
+const cleanedText = rawText.replace(/^(\s+source: "[^"]*)\n"$/gm, '$1"');
+const spec = YAML.parse(cleanedText, { strict: false, logLevel: "silent", uniqueKeys: false });
 writeFileSync("spec/integration.bundled.json", `${JSON.stringify(spec, null, 2)}\n`);
 process.stderr.write(
   `update-spec: wrote ${spec.paths ? Object.keys(spec.paths).length : 0} paths\n`,
