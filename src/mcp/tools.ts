@@ -3,7 +3,7 @@ import type { EntityIndex } from "../spec/index.js";
 import type { UnifiClient } from "../unifi/client.js";
 import type { ToolResult } from "./errors-to-result.js";
 import { wrapHandler } from "./errors-to-result.js";
-import { createLogger } from "../logging.js";
+import type { Logger } from "../logging.js";
 
 export type { ToolResult };
 
@@ -11,7 +11,7 @@ export type AnyTool = {
   name: string;
   description: string;
   inputSchema: Record<string, unknown>;
-  handler: (args: any) => Promise<ToolResult>;
+  handler: (args: never) => Promise<ToolResult>;
 };
 
 const text = (value: unknown): ToolResult => ({
@@ -26,8 +26,7 @@ const invokeArgs = {
   body: z.unknown().optional(),
 };
 
-export const buildTools = (index: EntityIndex, client: UnifiClient): AnyTool[] => {
-  const log = createLogger("error");
+export const buildTools = (index: EntityIndex, client: UnifiClient, log: Logger): AnyTool[] => {
   return [
     {
       name: "unifi_list_entities",
@@ -38,7 +37,7 @@ export const buildTools = (index: EntityIndex, client: UnifiClient): AnyTool[] =
         "unifi_list_entities",
         async (): Promise<ToolResult> => text(index.listEntities()),
         log,
-      ),
+      ) as AnyTool["handler"],
     },
     {
       name: "unifi_describe_entity",
@@ -50,7 +49,7 @@ export const buildTools = (index: EntityIndex, client: UnifiClient): AnyTool[] =
         async (args: { entity: string }): Promise<ToolResult> =>
           text(index.describeEntity(args.entity)),
         log,
-      ),
+      ) as AnyTool["handler"],
     },
     {
       name: "unifi_get",
@@ -79,7 +78,7 @@ export const buildTools = (index: EntityIndex, client: UnifiClient): AnyTool[] =
           );
         },
         log,
-      ),
+      ) as AnyTool["handler"],
     },
     {
       name: "unifi_invoke",
@@ -109,7 +108,7 @@ export const buildTools = (index: EntityIndex, client: UnifiClient): AnyTool[] =
           );
         },
         log,
-      ),
+      ) as AnyTool["handler"],
     },
   ];
 };

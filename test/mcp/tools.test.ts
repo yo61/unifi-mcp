@@ -5,6 +5,7 @@ import { UnifiClient } from "../../src/unifi/client.js";
 import { buildTools } from "../../src/mcp/tools.js";
 import type { Config } from "../../src/config.js";
 import { mockFetch } from "../helpers/mock-fetch.js";
+import { createLogger } from "../../src/logging.js";
 
 const cfg: Config = {
   baseUrl: new URL("https://gw"),
@@ -19,18 +20,20 @@ const cfg: Config = {
 };
 const index = new EntityIndex(buildResolvedSpec(mini));
 const tool = (name: string, fetcher?: typeof fetch) =>
-  buildTools(index, new UnifiClient(cfg, "/proxy/network/integration", fetcher)).find(
-    (t) => t.name === name,
-  )!;
+  buildTools(
+    index,
+    new UnifiClient(cfg, "/proxy/network/integration", fetcher),
+    createLogger("error"),
+  ).find((t) => t.name === name)!;
 
 describe("tools", () => {
   test("unifi_list_entities returns tags", async () => {
-    const r = await tool("unifi_list_entities").handler({});
+    const r = await tool("unifi_list_entities").handler({} as never);
     expect(r.content[0]!.text).toContain("Devices");
   });
 
   test("unifi_describe_entity returns operations", async () => {
-    const r = await tool("unifi_describe_entity").handler({ entity: "Devices" });
+    const r = await tool("unifi_describe_entity").handler({ entity: "Devices" } as never);
     expect(r.content[0]!.text).toContain("listDevices");
   });
 
@@ -39,12 +42,15 @@ describe("tools", () => {
     const r = await tool("unifi_get", fetcher).handler({
       entity: "Sites",
       operationId: "listSites",
-    });
+    } as never);
     expect(r.content[0]!.text).toContain("s1");
   });
 
   test("unifi_invoke refuses writes while gated off", async () => {
-    const r = await tool("unifi_invoke").handler({ entity: "Devices", operationId: "adoptDevice" });
+    const r = await tool("unifi_invoke").handler({
+      entity: "Devices",
+      operationId: "adoptDevice",
+    } as never);
     expect(r.isError).toBe(true);
     expect(r.content[0]!.text).toMatch(/read-only/i);
   });
