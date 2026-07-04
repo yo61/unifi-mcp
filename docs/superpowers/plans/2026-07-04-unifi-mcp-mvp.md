@@ -1148,7 +1148,7 @@ Run: `pnpm vitest run test/spec/factory.test.ts`
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import OpenAPIParser from "@readme/openapi-parser";
+import { dereference as openapiDereference } from "@readme/openapi-parser";
 import type { Config } from "../config.js";
 import { request } from "../http/request.js";
 import { SpecStore, type SpecStoreDeps } from "./store.js";
@@ -1182,7 +1182,7 @@ export const createSpecStore = (cfg: Config): SpecStore => {
         operationId: "fetchSpec",
       }),
     readBundled: async () => JSON.parse(await readFile(cfg.specFile ?? BUNDLED, "utf8")),
-    dereference: async (doc) => OpenAPIParser.dereference(structuredClone(doc) as never),
+    dereference: async (doc) => openapiDereference(structuredClone(doc) as never),
   };
 
   return new SpecStore(cfg.specFreshnessMs, deps);
@@ -1247,7 +1247,7 @@ const adopt: EntityOperation = { ...listDevices, operationId: "adopt", method: "
 describe("UnifiClient", () => {
   test("binds path params and query, prefixing the server base path", async () => {
     const fetcher = mockFetch({ "GET /proxy/network/integration/v1/sites/s1/devices": { data: [] } });
-    const client = new UnifiClient(cfg(), "/proxy/network/integration");
+    const client = new UnifiClient(cfg(), "/proxy/network/integration", fetcher);
     const out = await client.invoke(listDevices, { pathParams: { siteId: "s1" }, query: { limit: "5" } });
     expect(out).toEqual({ data: [] });
     const calledUrl = new URL(fetcher.mock.calls[0]![0] as string | URL);
