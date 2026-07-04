@@ -1,0 +1,32 @@
+# Node
+node_modules/
+dist/
+build/
+.tsbuildinfo
+*.tsbuildinfo
+
+# MCPB build artifacts (manifest.json is committed; bundle is a release artifact)
+.mcpb/*.mcpb
+
+# Test / coverage
+coverage/
+.vitest-cache/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Cache
+.cache/
+.superpowers/

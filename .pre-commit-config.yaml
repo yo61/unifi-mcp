@@ -1,0 +1,50 @@
+default_install_hook_types: [pre-commit, commit-msg]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+      - id: check-json
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.22.1
+    hooks:
+      - id: markdownlint-cli2
+
+  - repo: local
+    hooks:
+      - id: oxfmt
+        name: oxfmt --check
+        entry: pnpm oxfmt --check
+        language: system
+        types_or: [ts, tsx, javascript, jsx]
+        pass_filenames: false
+      - id: oxlint
+        name: oxlint
+        entry: pnpm oxlint
+        language: system
+        types_or: [ts, tsx, javascript, jsx]
+        pass_filenames: false
+      - id: tsc
+        name: tsc --noEmit
+        entry: pnpm typecheck
+        language: system
+        pass_filenames: false
+      - id: vitest
+        name: vitest (unit + component)
+        entry: pnpm vitest run --exclude test/integration
+        language: system
+        pass_filenames: false

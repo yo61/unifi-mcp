@@ -1,0 +1,17 @@
+{
+  "default": true,
+  "MD013": { "line_length": 100, "tables": false, "code_blocks": false, "headings": false },
+  "MD024": { "siblings_only": true },
+  // ASCII diagrams and shell-output samples often have no language tag.
+  "MD040": false,
+  // Emphasis is acceptable for inline question pseudo-headings in spec walkthroughs.
+  "MD036": false,
+  // We don't enforce a particular table pipe-spacing style — both compact and
+  // padded are fine. markdownlint's MD060 is opinionated about which to use.
+  "MD060": false,
+  // Raw HTML occasionally needed for callouts in plans.
+  "MD033": false,
+  // The first line of a markdown doc isn't required to be a top-level heading
+  // (frontmatter, blockquote intros, etc. are common).
+  "MD041": false,
+}

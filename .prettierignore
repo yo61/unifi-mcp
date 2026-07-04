@@ -1,0 +1,16 @@
+# Used by oxfmt (oxfmt reads .gitignore and .prettierignore by default).
+# Keep oxfmt focused on source and config — exclude generated and document
+# trees that have their own conventions.
+
+dist/
+node_modules/
+coverage/
+.vitest-cache/
+
+# Lockfiles
+pnpm-lock.yaml
+
+# Documents owned by spec/plan/knowledge workflows — not source.
+docs/
+knowledge/
+notes/

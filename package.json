@@ -1,0 +1,59 @@
+{
+  "name": "unifi-mcp",
+  "version": "0.1.0",
+  "description": "Model Context Protocol server for the UniFi Local Network Integration API.",
+  "keywords": [
+    "claude",
+    "mcp",
+    "model-context-protocol",
+    "openapi",
+    "ubiquiti",
+    "unifi"
+  ],
+  "license": "MIT",
+  "bin": {
+    "unifi-mcp": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "spec/integration.bundled.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsx watch src/cli.ts",
+    "start": "node dist/cli.js",
+    "lint": "oxlint",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:integration": "UNIFI_INTEGRATION=1 vitest run test/integration",
+    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
+    "update-spec": "node scripts/update-spec.mjs",
+    "prepublishOnly": "pnpm verify && pnpm build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "@readme/openapi-parser": "6.2.0",
+    "pino": "10.3.1",
+    "undici": "8.6.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@anthropic-ai/mcpb": "2.1.2",
+    "@types/node": "26.1.0",
+    "oxfmt": "0.57.0",
+    "oxlint": "1.72.0",
+    "tsx": "4.23.0",
+    "typescript": "6.0.3",
+    "vitest": "4.1.9"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "packageManager": "pnpm@11.5.3"
+}
