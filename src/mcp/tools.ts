@@ -46,8 +46,19 @@ export const buildTools = (index: EntityIndex, client: UnifiClient, log: Logger)
       inputSchema: { entity: z.string() },
       handler: wrapHandler(
         "unifi_describe_entity",
-        async (args: { entity: string }): Promise<ToolResult> =>
-          text(index.describeEntity(args.entity)),
+        async (args: { entity: string }): Promise<ToolResult> => {
+          const described = index.describeEntity(args.entity);
+          const base = client.basePath;
+          return text({
+            entity: described.entity,
+            apiBasePath: base,
+            note: `Operations resolve under the reverse-proxy mount '${base}', recovered from the spec URL — the served OpenAPI 'servers' url is root-relative and omits this mount. Call an operation with unifi_get/unifi_invoke (entity + operationId + pathParams/query); the server prepends the mount and builds the full URL.`,
+            operations: described.operations.map((o) => ({
+              ...o,
+              requestPath: `${base}${o.path}`,
+            })),
+          });
+        },
         log,
       ) as AnyTool["handler"],
     },

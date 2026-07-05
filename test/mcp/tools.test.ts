@@ -37,6 +37,19 @@ describe("tools", () => {
     expect(r.content[0]!.text).toContain("listDevices");
   });
 
+  test("unifi_describe_entity surfaces the resolved mount base path", async () => {
+    const r = await tool("unifi_describe_entity").handler({ entity: "Devices" } as never);
+    const out = JSON.parse(r.content[0]!.text) as {
+      apiBasePath: string;
+      note: string;
+      operations: Array<{ operationId: string; requestPath: string }>;
+    };
+    expect(out.apiBasePath).toBe("/proxy/network/integration");
+    expect(out.note).toMatch(/reverse-proxy mount/i);
+    const listDevices = out.operations.find((o) => o.operationId === "listDevices");
+    expect(listDevices?.requestPath).toBe("/proxy/network/integration/v1/sites/{siteId}/devices");
+  });
+
   test("unifi_get invokes the read operation", async () => {
     const fetcher = mockFetch({ "GET /proxy/network/integration/v1/sites": { data: ["s1"] } });
     const r = await tool("unifi_get", fetcher).handler({

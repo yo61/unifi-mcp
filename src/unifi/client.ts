@@ -19,6 +19,11 @@ export class UnifiClient {
     this.#fetcher = fetcher;
   }
 
+  /** The reverse-proxy mount every operation path is prefixed with (e.g. `/proxy/network/integration`). */
+  get basePath(): string {
+    return this.#basePath;
+  }
+
   async invoke(op: EntityOperation, args: InvokeArgs): Promise<unknown> {
     if (!op.read && !this.#cfg.allowWrites) {
       throw new Error(
