@@ -50,15 +50,19 @@ Run `pnpm update-spec` to update the bundled spec from a live gateway.
 
 Copy `.env.example` to `.env` and fill in the required values.
 
-| Variable                  | Required | Default    | Description                                       |
-| ------------------------- | -------- | ---------- | ------------------------------------------------- |
-| `UNIFI_BASE_URL`          | yes      | —          | Gateway address, e.g. `https://192.168.1.1`       |
-| `UNIFI_API_KEY`           | yes      | —          | Integration API key (see below)                   |
-| `UNIFI_CA_CERT`           | no       | —          | Path to the controller's CA certificate (PEM)     |
-| `UNIFI_INSECURE_TLS`      | no       | `false`    | Disable TLS verification — last resort only       |
-| `UNIFI_ALLOW_WRITES`      | no       | `false`    | Enable write operations via `unifi_invoke`        |
-| `UNIFI_SPEC_FRESHNESS_MS` | no       | `86400000` | Max age of the cached spec in milliseconds        |
-| `UNIFI_LOG_LEVEL`         | no       | `error`    | Pino log level (`error`, `warn`, `info`, `debug`) |
+| Variable                  | Required | Default              | Description                                            |
+| ------------------------- | -------- | -------------------- | ------------------------------------------------------ |
+| `UNIFI_BASE_URL`          | yes      | —                    | Gateway address, e.g. `https://192.168.1.1`            |
+| `UNIFI_API_KEY`           | yes      | —                    | Integration API key (see below)                        |
+| `UNIFI_CA_CERT`           | no       | —                    | Path to the controller's CA certificate (PEM)          |
+| `UNIFI_INSECURE_TLS`      | no       | `false`              | Disable TLS verification — last resort only            |
+| `UNIFI_ALLOW_WRITES`      | no       | `false`              | Enable write operations via `unifi_invoke`             |
+| `UNIFI_TIMEOUT_MS`        | no       | `30000`              | Per-request timeout in milliseconds                    |
+| `UNIFI_SPEC_URL`          | no       | —                    | Override the OpenAPI spec URL fetched from the gateway |
+| `UNIFI_SPEC_FILE`         | no       | —                    | Use a local spec file as the bundled fallback          |
+| `UNIFI_CACHE_DIR`         | no       | `~/.cache/unifi-mcp` | Where the cached spec is written                       |
+| `UNIFI_SPEC_FRESHNESS_MS` | no       | `86400000`           | Max age of the cached spec in milliseconds             |
+| `UNIFI_LOG_LEVEL`         | no       | `error`              | Pino log level (`error`, `warn`, `info`, `debug`)      |
 
 ### Getting an API key
 

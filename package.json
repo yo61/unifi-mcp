@@ -31,7 +31,6 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:integration": "UNIFI_INTEGRATION=1 vitest run test/integration",
     "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
     "update-spec": "node scripts/update-spec.mjs",
     "prepublishOnly": "pnpm verify && pnpm build"
