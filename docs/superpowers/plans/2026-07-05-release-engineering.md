@@ -51,7 +51,7 @@ release-please-config.json                # release-please config
     release.yaml                           # release-please + npm OIDC publish
     security.yaml                          # osv-scanner + syft/grype SBOM
     claude-code-review.yaml                # AI review on PRs
-  dependabot.yml                          # npm + github-actions + pre-commit
+  dependabot.yaml                          # npm + github-actions + pre-commit
 decisions/2026-07-05-release-engineering.md
 quality/criteria.md
 ```
@@ -577,7 +577,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 6: Claude review workflow + Dependabot
 
 **Files:**
-- Create: `.github/workflows/claude-code-review.yaml`, `.github/dependabot.yml`
+- Create: `.github/workflows/claude-code-review.yaml`, `.github/dependabot.yaml`
 
 **Interfaces:**
 - Produces: AI review on PRs (inert until `CLAUDE_CODE_OAUTH_TOKEN` is set); grouped dependency updates.
@@ -621,7 +621,7 @@ jobs:
 
 Note the `vars.CLAUDE_REVIEW_ENABLED == 'true'` gate: the job stays skipped until Robin sets both the `CLAUDE_CODE_OAUTH_TOKEN` secret and a repo/org **variable** `CLAUDE_REVIEW_ENABLED=true`. Document this in the decision record (Task 7).
 
-- [ ] **Step 2: Write `.github/dependabot.yml`**
+- [ ] **Step 2: Write `.github/dependabot.yaml`**
 
 ```yaml
 version: 2
@@ -659,12 +659,12 @@ updates:
 
 Run: `actionlint .github/workflows/claude-code-review.yaml && zizmor .github/workflows/claude-code-review.yaml`
 Expected: no findings.
-Run: `python3 -c "import yaml,sys; yaml.safe_load(open('.github/dependabot.yml'))"` (or `yq`) → no error.
+Run: `python3 -c "import yaml,sys; yaml.safe_load(open('.github/dependabot.yaml'))"` (or `yq`) → no error.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add .github/workflows/claude-code-review.yaml .github/dependabot.yml
+git add .github/workflows/claude-code-review.yaml .github/dependabot.yaml
 git commit -m "ci: add Claude review workflow and dependabot config
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"

@@ -127,7 +127,7 @@ Trigger: `pull_request` (opened/synchronize/ready_for_review/reopened). Skips
 `/code-review:code-review`. Allows the `semantic-release-pusher` bot so
 release PRs get reviewed. Inert until the token secret is added.
 
-### 9. Dependabot (`.github/dependabot.yml`)
+### 9. Dependabot (`.github/dependabot.yaml`)
 
 Ecosystems: `npm`, `github-actions`, `pre-commit`. Weekly, `cooldown:
 default-days: 7`, grouped (`patterns: ["*"]` per ecosystem).
