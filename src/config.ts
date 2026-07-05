@@ -58,6 +58,20 @@ export const loadConfig = (env: Record<string, string | undefined>): Config => {
   }
   const d = parsed.data;
   const baseUrl = new URL(d.UNIFI_BASE_URL);
+
+  let caCert: string | undefined;
+  if (d.UNIFI_CA_CERT !== undefined) {
+    try {
+      caCert = readFileSync(d.UNIFI_CA_CERT, "utf8");
+    } catch (cause) {
+      const reason = cause instanceof Error ? cause.message : String(cause);
+      throw new Error(
+        `Invalid configuration — UNIFI_CA_CERT: cannot read CA certificate at '${d.UNIFI_CA_CERT}': ${reason}`,
+        { cause },
+      );
+    }
+  }
+
   return {
     baseUrl,
     apiKey: d.UNIFI_API_KEY,
@@ -67,7 +81,7 @@ export const loadConfig = (env: Record<string, string | undefined>): Config => {
     specFreshnessMs: d.UNIFI_SPEC_FRESHNESS_MS,
     cacheDir: d.UNIFI_CACHE_DIR,
     timeoutMs: d.UNIFI_TIMEOUT_MS,
-    ...(d.UNIFI_CA_CERT !== undefined ? { caCert: readFileSync(d.UNIFI_CA_CERT, "utf8") } : {}),
+    ...(caCert !== undefined ? { caCert } : {}),
     insecureTls: d.UNIFI_INSECURE_TLS === "true",
     allowWrites: d.UNIFI_ALLOW_WRITES === "true",
     logLevel: d.UNIFI_LOG_LEVEL,

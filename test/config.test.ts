@@ -33,4 +33,10 @@ describe("loadConfig", () => {
     expect(loadConfig({ ...base, UNIFI_ALLOW_WRITES: "1" }).allowWrites).toBe(false);
     expect(loadConfig({ ...base, UNIFI_ALLOW_WRITES: "true" }).allowWrites).toBe(true);
   });
+
+  test("rejects non-existent UNIFI_CA_CERT path", () => {
+    expect(() =>
+      loadConfig({ ...base, UNIFI_CA_CERT: "/nonexistent/path/ca.pem" }),
+    ).toThrow(/UNIFI_CA_CERT/);
+  });
 });

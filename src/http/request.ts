@@ -64,9 +64,12 @@ export const request = async <T>(input: RequestInput): Promise<T> => {
       cause instanceof Error ? `HTTP request failed: ${cause.message}` : "HTTP request failed";
     throw new UnifiTransportError(m, { cause });
   }
-  clearTimeout(timer);
+  // Do NOT clearTimeout here — the abort timer must stay armed until the body
+  // has been fully read; a gateway that stalls after sending headers would
+  // otherwise hang forever.
 
   if (response.status === 401 || response.status === 403) {
+    clearTimeout(timer);
     throw new UnifiAuthError(`Authentication failed (${response.status}) — check UNIFI_API_KEY`, {
       status: response.status,
     });
@@ -77,6 +80,13 @@ export const request = async <T>(input: RequestInput): Promise<T> => {
   try {
     parsed = await response.json();
   } catch (cause) {
+    clearTimeout(timer);
+    if (cause instanceof Error && cause.name === "AbortError") {
+      throw new UnifiTransportError(
+        `Request timed out after ${timeoutMs}ms reading response body`,
+        { cause },
+      );
+    }
     let snippet = "";
     try {
       snippet = (await peek.text()).slice(0, 200).replace(/\s+/g, " ").trim();
@@ -89,6 +99,7 @@ export const request = async <T>(input: RequestInput): Promise<T> => {
       { cause },
     );
   }
+  clearTimeout(timer);
 
   if (!response.ok) {
     const detail =
