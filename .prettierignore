@@ -15,3 +15,7 @@ pnpm-lock.yaml
 docs/
 knowledge/
 notes/
+
+# release-please generates these; their format is release-please's, not oxfmt's.
+CHANGELOG.md
+.release-please-manifest.json
