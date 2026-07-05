@@ -57,3 +57,10 @@ jobs:
         with:
           persist-credentials: false
       - uses: zizmorcore/zizmor-action@192e21d79ab29983730a13d1382995c2307fbcaa # v0.5.7
+        with:
+          # Don't upload SARIF to code scanning (needs security-events: write,
+          # which this job deliberately doesn't have); findings still fail the
+          # job via zizmor's exit code.
+          advanced-security: false
+          persona: regular
+          version: v1.26.1
