@@ -9,7 +9,7 @@
  * which the console serves as its web-UI HTML fallback). We recover the mount
  * from the spec URL and prepend it to the declared server base.
  */
-export const apiBasePath = (specUrl: string, serverBasePath: string): string => {
+export const resolveApiBasePath = (specUrl: string, serverBasePath: string): string => {
   const path = new URL(specUrl).pathname;
   const marker = "/api-docs/";
   const idx = path.indexOf(marker);

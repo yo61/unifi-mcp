@@ -1,9 +1,6 @@
-import type {
-  EntityDescribe,
-  EntityOperation,
-  EntitySummary,
-  ResolvedSpec,
-} from "./types.js";
+import { asEntityTag, asOperationId, type EntityTag, type OperationId } from "../brands.js";
+import { resolveApiBasePath } from "./base-path.js";
+import type { EntityDescribe, EntityOperation, EntitySummary, ResolvedSpec } from "./types.js";
 
 type RawParam = { name: string; in: string; required?: boolean; description?: string };
 type RawOp = {
@@ -25,20 +22,24 @@ const METHODS = ["get", "post", "put", "patch", "delete"] as const;
 const jsonSchema = (bag?: { content?: Record<string, { schema?: unknown }> }): unknown =>
   bag?.content?.["application/json"]?.schema;
 
-export const buildResolvedSpec = (deref: unknown): ResolvedSpec => {
+/**
+ * Project a dereferenced OpenAPI document into the domain model. `specUrl` is
+ * the URL the document was fetched from — needed to recover the reverse-proxy
+ * mount for `apiBasePath` (see `resolveApiBasePath`).
+ */
+export const buildResolvedSpec = (deref: unknown, specUrl: string): ResolvedSpec => {
   const doc = deref as RawDoc;
   const operations: EntityOperation[] = [];
   for (const [path, item] of Object.entries(doc.paths ?? {})) {
     for (const method of METHODS) {
       const op = item[method];
       if (!op) continue;
-      const tag = op.tags?.[0] ?? "Untagged";
       const params = op.parameters ?? [];
       const requestBodySchema = jsonSchema(op.requestBody);
       const responseSchema = jsonSchema(op.responses?.["200"]);
       operations.push({
-        operationId: op.operationId ?? `${method.toUpperCase()} ${path}`,
-        tag,
+        operationId: asOperationId(op.operationId ?? `${method.toUpperCase()} ${path}`),
+        tag: asEntityTag(op.tags?.[0] ?? "Untagged"),
         method: method.toUpperCase(),
         path,
         ...(op.summary !== undefined ? { summary: op.summary } : {}),
@@ -56,19 +57,20 @@ export const buildResolvedSpec = (deref: unknown): ResolvedSpec => {
       });
     }
   }
+  const serverBasePath = doc.servers?.[0]?.url ?? "";
   return {
     tags: (doc.tags ?? []).map((t) => ({
-      name: t.name,
+      name: asEntityTag(t.name),
       ...(t.description !== undefined ? { description: t.description } : {}),
     })),
     operations,
-    serverBasePath: doc.servers?.[0]?.url ?? "",
+    apiBasePath: resolveApiBasePath(specUrl, serverBasePath),
   };
 };
 
 export class EntityIndex {
   readonly #spec: ResolvedSpec;
-  readonly #byTag = new Map<string, EntityOperation[]>();
+  readonly #byTag = new Map<EntityTag, EntityOperation[]>();
 
   constructor(spec: ResolvedSpec) {
     this.#spec = spec;
@@ -84,7 +86,7 @@ export class EntityIndex {
 
   listEntities(): readonly EntitySummary[] {
     const declared = new Map(this.#spec.tags.map((t) => [t.name, t.description]));
-    const names = new Set<string>([...declared.keys(), ...this.#byTag.keys()]);
+    const names = new Set<EntityTag>([...declared.keys(), ...this.#byTag.keys()]);
     return [...names].sort().map((name) => {
       const ops = this.#byTag.get(name) ?? [];
       const description = declared.get(name);
@@ -97,13 +99,13 @@ export class EntityIndex {
     });
   }
 
-  describeEntity(tag: string): EntityDescribe {
+  describeEntity(tag: EntityTag): EntityDescribe {
     const operations = this.#byTag.get(tag);
     if (!operations) throw new Error(`Unknown entity '${tag}'. Call unifi_list_entities first.`);
     return { entity: tag, operations };
   }
 
-  findReadOperation(tag: string, operationId: string): EntityOperation {
+  findReadOperation(tag: EntityTag, operationId: OperationId): EntityOperation {
     const op = this.describeEntity(tag).operations.find((o) => o.operationId === operationId);
     if (!op) throw new Error(`Unknown operation '${operationId}' on entity '${tag}'.`);
     if (!op.read) throw new Error(`Operation '${operationId}' is not a read (GET) operation.`);

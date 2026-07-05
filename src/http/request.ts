@@ -1,10 +1,11 @@
 import { Agent } from "undici";
+import type { ApiKey } from "../brands.js";
 import { UnifiApiError, UnifiAuthError, UnifiTransportError } from "./errors.js";
 
 export type RequestInput = {
   url: URL;
   method: string;
-  apiKey: string;
+  apiKey: ApiKey;
   timeoutMs: number;
   insecureTls: boolean;
   caCert?: string;

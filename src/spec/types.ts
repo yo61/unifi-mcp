@@ -1,12 +1,15 @@
+import type { EntityTag, OperationId } from "../brands.js";
+
 export type ResolvedSpec = {
-  tags: ReadonlyArray<{ name: string; description?: string }>;
+  tags: ReadonlyArray<{ name: EntityTag; description?: string }>;
   operations: readonly EntityOperation[];
-  serverBasePath: string;
+  /** The fully-resolved API base path requests are sent under, including the reverse-proxy mount (e.g. `/proxy/network/integration`). */
+  apiBasePath: string;
 };
 
 export type EntityOperation = {
-  operationId: string;
-  tag: string;
+  operationId: OperationId;
+  tag: EntityTag;
   method: string;
   path: string;
   summary?: string;
@@ -17,6 +20,11 @@ export type EntityOperation = {
   responseSchema?: unknown;
 };
 
-export type EntitySummary = { name: string; description?: string; readOps: number; writeOps: number };
+export type EntitySummary = {
+  name: EntityTag;
+  description?: string;
+  readOps: number;
+  writeOps: number;
+};
 
-export type EntityDescribe = { entity: string; operations: readonly EntityOperation[] };
+export type EntityDescribe = { entity: EntityTag; operations: readonly EntityOperation[] };

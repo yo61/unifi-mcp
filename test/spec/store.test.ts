@@ -1,4 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
+const SPEC_URL = "https://gw/proxy/network/api-docs/integration.json";
 import mini from "../helpers/fixtures/mini-spec.json" with { type: "json" };
 import { SpecStore, type SpecStoreDeps } from "../../src/spec/store.js";
 
@@ -15,7 +16,7 @@ const baseDeps = (over: Partial<SpecStoreDeps>): SpecStoreDeps => ({
 describe("SpecStore cascade", () => {
   test("fresh cache short-circuits the network", async () => {
     const fetchLive = vi.fn(async () => mini);
-    const store = new SpecStore(1000, baseDeps({
+    const store = new SpecStore(1000, SPEC_URL, baseDeps({
       readCache: async () => ({ fetchedAt: 999_500, doc: mini }),
       fetchLive,
     }));
@@ -26,7 +27,7 @@ describe("SpecStore cascade", () => {
 
   test("stale cache triggers live fetch and rewrites cache", async () => {
     const writeCache = vi.fn(async () => {});
-    const store = new SpecStore(1000, baseDeps({
+    const store = new SpecStore(1000, SPEC_URL, baseDeps({
       readCache: async () => ({ fetchedAt: 100, doc: mini }),
       writeCache,
     }));
@@ -37,7 +38,7 @@ describe("SpecStore cascade", () => {
 
   test("live failure with stale cache uses stale cache (beats bundled)", async () => {
     const readBundled = vi.fn(async () => mini);
-    const store = new SpecStore(1000, baseDeps({
+    const store = new SpecStore(1000, SPEC_URL, baseDeps({
       readCache: async () => ({ fetchedAt: 100, doc: mini }),
       fetchLive: async () => { throw new Error("unreachable"); },
       readBundled,
@@ -48,7 +49,7 @@ describe("SpecStore cascade", () => {
   });
 
   test("live failure with no cache falls back to bundled", async () => {
-    const store = new SpecStore(1000, baseDeps({
+    const store = new SpecStore(1000, SPEC_URL, baseDeps({
       readCache: async () => undefined,
       fetchLive: async () => { throw new Error("unreachable"); },
     }));

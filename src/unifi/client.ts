@@ -13,9 +13,9 @@ export class UnifiClient {
   readonly #basePath: string;
   readonly #fetcher: typeof fetch | undefined;
 
-  constructor(cfg: Config, serverBasePath: string, fetcher?: typeof fetch) {
+  constructor(cfg: Config, apiBasePath: string, fetcher?: typeof fetch) {
     this.#cfg = cfg;
-    this.#basePath = serverBasePath.replace(/\/$/, "");
+    this.#basePath = apiBasePath.replace(/\/$/, "");
     this.#fetcher = fetcher;
   }
 

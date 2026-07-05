@@ -1,9 +1,10 @@
 import { describe, expect, test, vi } from "vitest";
+import { asApiKey } from "../../src/brands.js";
 import { UnifiApiError, UnifiAuthError, UnifiTransportError } from "../../src/http/errors.js";
 import { request } from "../../src/http/request.js";
 import { mockFetch } from "../helpers/mock-fetch.js";
 
-const opts = { apiKey: "k", timeoutMs: 1000, insecureTls: false as const };
+const opts = { apiKey: asApiKey("k"), timeoutMs: 1000, insecureTls: false as const };
 
 describe("request", () => {
   test("sends X-API-KEY and parses JSON", async () => {

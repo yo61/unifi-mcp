@@ -14,10 +14,12 @@ export type SpecStoreDeps = {
 
 export class SpecStore {
   readonly #freshnessMs: number;
+  readonly #specUrl: string;
   readonly #deps: SpecStoreDeps;
 
-  constructor(freshnessMs: number, deps: SpecStoreDeps) {
+  constructor(freshnessMs: number, specUrl: string, deps: SpecStoreDeps) {
     this.#freshnessMs = freshnessMs;
+    this.#specUrl = specUrl;
     this.#deps = deps;
   }
 
@@ -41,6 +43,6 @@ export class SpecStore {
 
   async #finish(doc: unknown, source: SpecSource): Promise<{ spec: ResolvedSpec; source: SpecSource }> {
     const deref = await this.#deps.dereference(doc);
-    return { spec: buildResolvedSpec(deref), source };
+    return { spec: buildResolvedSpec(deref, this.#specUrl), source };
   }
 }

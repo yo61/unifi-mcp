@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { z } from "zod";
+import { asApiKey, type ApiKey } from "./brands.js";
 
 const LogLevel = z.enum(["error", "warn", "info", "debug"]);
 
@@ -36,7 +37,7 @@ const EnvSchema = z.object({
 
 export type Config = {
   baseUrl: URL;
-  apiKey: string;
+  apiKey: ApiKey;
   specUrl: string;
   specFile?: string;
   specFreshnessMs: number;
@@ -74,7 +75,7 @@ export const loadConfig = (env: Record<string, string | undefined>): Config => {
 
   return {
     baseUrl,
-    apiKey: d.UNIFI_API_KEY,
+    apiKey: asApiKey(d.UNIFI_API_KEY),
     specUrl:
       d.UNIFI_SPEC_URL ?? new URL("/proxy/network/api-docs/integration.json", baseUrl).toString(),
     ...(d.UNIFI_SPEC_FILE !== undefined ? { specFile: d.UNIFI_SPEC_FILE } : {}),
