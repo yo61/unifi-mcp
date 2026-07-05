@@ -35,8 +35,8 @@ describe("loadConfig", () => {
   });
 
   test("rejects non-existent UNIFI_CA_CERT path", () => {
-    expect(() =>
-      loadConfig({ ...base, UNIFI_CA_CERT: "/nonexistent/path/ca.pem" }),
-    ).toThrow(/UNIFI_CA_CERT/);
+    expect(() => loadConfig({ ...base, UNIFI_CA_CERT: "/nonexistent/path/ca.pem" })).toThrow(
+      /UNIFI_CA_CERT/,
+    );
   });
 });
