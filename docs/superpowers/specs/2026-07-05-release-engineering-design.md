@@ -177,3 +177,12 @@ vs `civi-mcp`, which owns its unscoped name), and Node specifics (matrix,
 pnpm). `civi-mcp` already uses the same toolchain (pnpm/oxlint/oxfmt/vitest)
 and lacks CI entirely, so the workflows, Taskfile, commitlint, dependabot,
 security, and standards dirs lift over with minimal change.
+
+**Required for the backport (oxfmt × release-please):** `civi-mcp` uses the
+same oxfmt formatter, which — unlike the single-language formatters in the
+other house-process repos (jobhound's `ruff format`, go-udap's `go fmt`) —
+also formats Markdown and JSON. release-please's generated `CHANGELOG.md` and
+`.release-please-manifest.json` are therefore in oxfmt's scope and will fail
+`oxfmt --check` on every Release PR. Add both to `.prettierignore` (as done
+here). This does not affect the Python/Go repos and is specific to any
+Prettier-family formatter.
