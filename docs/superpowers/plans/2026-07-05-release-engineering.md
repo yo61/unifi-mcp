@@ -294,6 +294,10 @@ jobs:
         with:
           persist-credentials: false
       - uses: zizmorcore/zizmor-action@192e21d79ab29983730a13d1382995c2307fbcaa # v0.5.7
+        with:
+          advanced-security: false # don't upload SARIF (no security-events perm); findings still fail via exit code
+          persona: regular
+          version: v1.26.1
 ```
 
 - [ ] **Step 2: Resolve the two `<PIN>` SHAs**
