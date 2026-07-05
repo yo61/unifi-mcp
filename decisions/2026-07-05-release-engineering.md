@@ -27,7 +27,7 @@ CLAUDE_CODE_OAUTH_TOKEN).
    `@robinbowes/unifi-mcp` (e.g. the current 0.1.0) using local/token auth to create the
    package, then proceed to step 2.
 2. **Trusted publisher config:** on npmjs, add a trusted publisher for `@robinbowes/unifi-mcp` →
-   repo `yo61/unifi-mcp`, workflow `release.yml`. The environment must be blank or exactly `npm`
+   repo `yo61/unifi-mcp`, workflow `release.yaml`. The environment must be blank or exactly `npm`
    (the publish job runs in `environment: npm`; a mismatch fails the OIDC claim).
 3. **Public repo:** confirm `yo61/unifi-mcp` is public — `npm publish --provenance` requires a
    public repository.

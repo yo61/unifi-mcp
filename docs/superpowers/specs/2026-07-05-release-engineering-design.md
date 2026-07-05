@@ -43,7 +43,7 @@ mostly find-replace.
 | `semantic-release-pusher` GitHub App | ✅ Installed org-wide; `SEMANTIC_RELEASE_APP_CLIENT_ID`/`_PRIVATE_KEY` are **org secrets scoped to ALL repos** | none — usable as-is |
 | `CLAUDE_CODE_OAUTH_TOKEN` | ⚠️ Set only on `jobhound`; **absent from `unifi-mcp`** | Robin adds it as a repo secret (or promotes to org secret); workflow is inert until then |
 | npm package name | `unifi-mcp` (unscoped) is owned by a third party (`pproenca-user`) | Publish as **`@robinbowes/unifi-mcp`** (Robin's user scope, unpublished/free) |
-| npm OIDC trusted publisher | not configured | Robin adds a trusted publisher for repo `yo61/unifi-mcp` + workflow `release.yml` on npmjs |
+| npm OIDC trusted publisher | not configured | Robin adds a trusted publisher for repo `yo61/unifi-mcp` + workflow `release.yaml` on npmjs |
 
 ## Components
 
@@ -78,7 +78,7 @@ commits, local oxfmt/oxlint/tsc/vitest); add `actionlint` and `zizmor`.
 class/acronym subjects), ignore dependabot's commits. Enforced by a CI job on
 PRs and by the commit-msg hook.
 
-### 5. CI (`.github/workflows/ci.yml`)
+### 5. CI (`.github/workflows/ci.yaml`)
 
 Triggers: `push` to `main`, `pull_request`. Jobs:
 
@@ -90,7 +90,7 @@ Triggers: `push` to `main`, `pull_request`. Jobs:
 All third-party actions pinned to full commit SHA with a version comment;
 `persist-credentials: false` on checkout; least-privilege `permissions`.
 
-### 6. Release (`.github/workflows/release.yml`)
+### 6. Release (`.github/workflows/release.yaml`)
 
 Trigger: `push` to `main`. Jobs:
 
@@ -108,7 +108,7 @@ No lockfile-sync job (unlike jobhound's `uv.lock`): `pnpm-lock.yaml` does not
 carry the root package's own version, so release-please's `package.json` bump
 does not desync it.
 
-### 7. Security (`.github/workflows/security.yml`)
+### 7. Security (`.github/workflows/security.yaml`)
 
 Triggers: `push`/`pull_request`/daily `schedule`/`workflow_dispatch`. Jobs:
 
@@ -119,7 +119,7 @@ Triggers: `push`/`pull_request`/daily `schedule`/`workflow_dispatch`. Jobs:
 
 `security-events: write` only on these jobs (for SARIF upload).
 
-### 8. Claude review (`.github/workflows/claude-code-review.yml`)
+### 8. Claude review (`.github/workflows/claude-code-review.yaml`)
 
 Trigger: `pull_request` (opened/synchronize/ready_for_review/reopened). Skips
 `dependabot[bot]`. Uses `anthropics/claude-code-action` with

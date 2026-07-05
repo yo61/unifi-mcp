@@ -47,10 +47,10 @@ release-please-config.json                # release-please config
 .release-please-manifest.json             # version manifest
 .github/
   workflows/
-    ci.yml                                # check matrix + commitlint + zizmor
-    release.yml                           # release-please + npm OIDC publish
-    security.yml                          # osv-scanner + syft/grype SBOM
-    claude-code-review.yml                # AI review on PRs
+    ci.yaml                                # check matrix + commitlint + zizmor
+    release.yaml                           # release-please + npm OIDC publish
+    security.yaml                          # osv-scanner + syft/grype SBOM
+    claude-code-review.yaml                # AI review on PRs
   dependabot.yml                          # npm + github-actions + pre-commit
 decisions/2026-07-05-release-engineering.md
 quality/criteria.md
@@ -226,13 +226,13 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 3: CI workflow
 
 **Files:**
-- Create: `.github/workflows/ci.yml`
+- Create: `.github/workflows/ci.yaml`
 
 **Interfaces:**
 - Consumes: `task dev:check` (Task 2), `commitlint.config.mjs` (Task 2).
 - Produces: the required status checks that gate PRs.
 
-- [ ] **Step 1: Write `.github/workflows/ci.yml`**
+- [ ] **Step 1: Write `.github/workflows/ci.yaml`**
 
 ```yaml
 name: CI
@@ -307,13 +307,13 @@ Replace `<PIN v4>` with `<sha> # v4`. (If the tag is annotated, the returned sha
 
 - [ ] **Step 3: Validate**
 
-Run: `actionlint .github/workflows/ci.yml && zizmor .github/workflows/ci.yml`
-Expected: no findings. No `<PIN>` markers remain (`grep -n PIN .github/workflows/ci.yml` → empty).
+Run: `actionlint .github/workflows/ci.yaml && zizmor .github/workflows/ci.yaml`
+Expected: no findings. No `<PIN>` markers remain (`grep -n PIN .github/workflows/ci.yaml` → empty).
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add .github/workflows/ci.yml
+git add .github/workflows/ci.yaml
 git commit -m "ci: add CI workflow (node 22/24 matrix, commitlint, zizmor)
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
@@ -324,7 +324,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 4: release-please config + Release workflow
 
 **Files:**
-- Create: `release-please-config.json`, `.release-please-manifest.json`, `.github/workflows/release.yml`
+- Create: `release-please-config.json`, `.release-please-manifest.json`, `.github/workflows/release.yaml`
 
 **Interfaces:**
 - Consumes: package name `@robinbowes/unifi-mcp` (Task 1).
@@ -370,7 +370,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```
 The current `package.json` version is `0.1.0` and `@robinbowes/unifi-mcp` is unpublished, so the first Release PR cuts the next version after `0.1.0` based on commits (a `feat:` → `0.2.0` given `bump-minor-pre-major`). If you want the very first published version to be exactly `0.1.0`, set this manifest to `"0.0.0"` and add a `"Release-As: 0.1.0"` note in one commit body before the first release; otherwise accept the computed bump. Record which you chose in the commit message.
 
-- [ ] **Step 3: Write `.github/workflows/release.yml`**
+- [ ] **Step 3: Write `.github/workflows/release.yaml`**
 
 ```yaml
 name: Release
@@ -445,14 +445,14 @@ Notes: `npm publish` (not `pnpm publish`) is used for OIDC trusted-publishing su
 
 - [ ] **Step 4: Resolve `<PIN>` SHAs (reuse the values from Task 3) and validate**
 
-Run: `grep -n PIN .github/workflows/release.yml` → empty after substitution.
-Run: `actionlint .github/workflows/release.yml && zizmor .github/workflows/release.yml`
+Run: `grep -n PIN .github/workflows/release.yaml` → empty after substitution.
+Run: `actionlint .github/workflows/release.yaml && zizmor .github/workflows/release.yaml`
 Expected: no findings.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add release-please-config.json .release-please-manifest.json .github/workflows/release.yml
+git add release-please-config.json .release-please-manifest.json .github/workflows/release.yaml
 git commit -m "ci: add release-please and npm OIDC publish workflow
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
@@ -463,12 +463,12 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 5: Security workflow
 
 **Files:**
-- Create: `.github/workflows/security.yml`
+- Create: `.github/workflows/security.yaml`
 
 **Interfaces:**
 - Produces: vuln + SBOM scan results in the Security tab.
 
-- [ ] **Step 1: Write `.github/workflows/security.yml`**
+- [ ] **Step 1: Write `.github/workflows/security.yaml`**
 
 ```yaml
 name: Security
@@ -559,14 +559,14 @@ Pin each to the SHA of that tag (`gh api /repos/<owner>/<repo>/git/ref/tags/<tag
 
 - [ ] **Step 3: Validate**
 
-Run: `grep -n PIN .github/workflows/security.yml` → empty.
-Run: `actionlint .github/workflows/security.yml && zizmor .github/workflows/security.yml`
+Run: `grep -n PIN .github/workflows/security.yaml` → empty.
+Run: `actionlint .github/workflows/security.yaml && zizmor .github/workflows/security.yaml`
 Expected: no findings.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add .github/workflows/security.yml
+git add .github/workflows/security.yaml
 git commit -m "ci: add supply-chain security scanning (osv-scanner + syft/grype)
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
@@ -577,12 +577,12 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 6: Claude review workflow + Dependabot
 
 **Files:**
-- Create: `.github/workflows/claude-code-review.yml`, `.github/dependabot.yml`
+- Create: `.github/workflows/claude-code-review.yaml`, `.github/dependabot.yml`
 
 **Interfaces:**
 - Produces: AI review on PRs (inert until `CLAUDE_CODE_OAUTH_TOKEN` is set); grouped dependency updates.
 
-- [ ] **Step 1: Write `.github/workflows/claude-code-review.yml`**
+- [ ] **Step 1: Write `.github/workflows/claude-code-review.yaml`**
 
 ```yaml
 name: Claude Code Review
@@ -657,14 +657,14 @@ updates:
 
 - [ ] **Step 3: Validate**
 
-Run: `actionlint .github/workflows/claude-code-review.yml && zizmor .github/workflows/claude-code-review.yml`
+Run: `actionlint .github/workflows/claude-code-review.yaml && zizmor .github/workflows/claude-code-review.yaml`
 Expected: no findings.
 Run: `python3 -c "import yaml,sys; yaml.safe_load(open('.github/dependabot.yml'))"` (or `yq`) → no error.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add .github/workflows/claude-code-review.yml .github/dependabot.yml
+git add .github/workflows/claude-code-review.yaml .github/dependabot.yml
 git commit -m "ci: add Claude review workflow and dependabot config
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
@@ -697,7 +697,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ## Trade-offs accepted: More moving parts; two manual setup steps (npm trusted publisher; CLAUDE_CODE_OAUTH_TOKEN).
 
 ## Manual setup required (owner: Robin):
-1. npmjs: create a **trusted publisher** for package @robinbowes/unifi-mcp → repo yo61/unifi-mcp, workflow release.yml.
+1. npmjs: create a **trusted publisher** for package @robinbowes/unifi-mcp → repo yo61/unifi-mcp, workflow release.yaml.
 2. Add repo (or org) secret `CLAUDE_CODE_OAUTH_TOKEN` and variable `CLAUDE_REVIEW_ENABLED=true` to enable AI review.
 3. (When ready) enable branch protection on main requiring the CI `check` statuses.
 
