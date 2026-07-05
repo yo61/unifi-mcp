@@ -1,0 +1,61 @@
+version: "3"
+silent: true
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+
+  dev:fmt:
+    desc: Apply oxfmt
+    cmds:
+      - pnpm format
+
+  dev:fmt-check:
+    desc: Check formatting without rewriting
+    cmds:
+      - pnpm format:check
+
+  dev:lint:
+    desc: Run oxlint
+    cmds:
+      - pnpm lint
+
+  dev:typecheck:
+    desc: Run tsc --noEmit
+    cmds:
+      - pnpm typecheck
+
+  dev:test:
+    desc: Run the vitest suite
+    cmds:
+      - pnpm test
+
+  dev:check:
+    desc: Full quality gate — format-check, lint, typecheck, tests
+    cmds:
+      - task: dev:fmt-check
+      - task: dev:lint
+      - task: dev:typecheck
+      - task: dev:test
+
+  smoke:
+    desc: Read-only smoke test against a live controller (.env)
+    cmds:
+      - pnpm smoke
+
+  update-spec:
+    desc: Refresh the bundled OpenAPI spec
+    cmds:
+      - pnpm update-spec
+
+  hooks:
+    desc: Run all prek hooks against every file
+    cmds:
+      - prek run --all-files
+
+  hooks-install:
+    desc: Install git hooks (pre-commit, commit-msg, pre-push)
+    cmds:
+      - prek install --hook-type pre-commit --hook-type commit-msg --hook-type pre-push

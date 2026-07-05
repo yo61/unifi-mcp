@@ -90,8 +90,11 @@ The server prints a warning to stderr on startup when it is set.
 ```sh
 pnpm install
 pnpm build
-node dist/cli.js      # or: unifi-mcp (after npm install -g)
+node dist/cli.js      # or: unifi-mcp (after npm install -g @robinbowes/unifi-mcp)
 ```
+
+Note: The package is published as `@robinbowes/unifi-mcp` (scoped), but the CLI
+command is `unifi-mcp` — unchanged.
 
 For use with an MCP client, point the client at the binary with stdio transport.
 

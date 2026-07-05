@@ -1,5 +1,5 @@
 {
-  "name": "unifi-mcp",
+  "name": "@robinbowes/unifi-mcp",
   "version": "0.1.0",
   "description": "Model Context Protocol server for the UniFi Local Network Integration API.",
   "keywords": [
@@ -10,7 +10,15 @@
     "ubiquiti",
     "unifi"
   ],
+  "homepage": "https://github.com/yo61/unifi-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/yo61/unifi-mcp/issues"
+  },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yo61/unifi-mcp.git"
+  },
   "bin": {
     "unifi-mcp": "./dist/cli.js"
   },
@@ -21,6 +29,10 @@
     "LICENSE"
   ],
   "type": "module",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsx watch src/cli.ts",
@@ -44,7 +56,6 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
-    "@anthropic-ai/mcpb": "2.1.2",
     "@types/node": "26.1.0",
     "oxfmt": "0.57.0",
     "oxlint": "1.72.0",
