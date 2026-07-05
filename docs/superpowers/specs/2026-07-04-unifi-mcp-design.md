@@ -40,6 +40,29 @@ spec, and there is no universal `where` grammar.
 - Cloud Site Manager API and legacy `/api/s/{site}` controller API — a
   registration seam is left, but only the Local Integration surface is
   built.
+
+## Future work: legacy controller API
+
+Add support for the legacy/internal controller API (`/api/s/{site}/...` and
+`/v2/api/site/{site}/...`) as an additional registered surface, alongside the
+Local Integration API.
+
+**Motivation (found while smoke-testing a live UDM Pro):** the official `/v1`
+Integration API only models the firewall as **Zone-Based Firewall** (zones +
+policies). On a controller using the *traditional* firewall, `getFirewallZones`
+returns `Zone Based Firewall is not configured [HTTP 400]`, and there is **no
+way to read classic LAN-IN / inter-VLAN firewall rules** through the supported
+API — those live only on the legacy `/v2/api` surface. So questions like "what
+access exists between VLANs?" cannot be fully answered from the Integration API
+alone. The legacy API is also broader (per-client stats, WLAN/firewall config)
+but undocumented and unstable.
+
+**Design note:** unlike the Integration API, the legacy API is **not
+OpenAPI-described**, so the spec-driven approach does not transplant — this
+surface would need either a hand-maintained descriptor or a different
+adapter. Its auth differs too (cookie/session vs `X-API-KEY`). Treat it as a
+separate surface behind the same registration seam, likely its own
+brainstorm → spec cycle.
 - Write operations — defined but gated off (`allowWrites: false`).
 - Caching of API *response data* (only the spec is cached).
 - Multi-controller support.
