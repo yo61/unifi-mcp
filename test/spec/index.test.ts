@@ -1,8 +1,10 @@
 import { describe, expect, test } from "vitest";
+import { asEntityTag, asOperationId } from "../../src/brands.js";
+const SPEC_URL = "https://gw/proxy/network/api-docs/integration.json";
 import mini from "../helpers/fixtures/mini-spec.json" with { type: "json" };
 import { EntityIndex, buildResolvedSpec } from "../../src/spec/index.js";
 
-const index = new EntityIndex(buildResolvedSpec(mini));
+const index = new EntityIndex(buildResolvedSpec(mini, SPEC_URL));
 
 describe("EntityIndex", () => {
   test("lists entities from tags with read/write counts", () => {
@@ -13,7 +15,7 @@ describe("EntityIndex", () => {
   });
 
   test("describeEntity returns operations with params", () => {
-    const d = index.describeEntity("Devices");
+    const d = index.describeEntity(asEntityTag("Devices"));
     const list = d.operations.find((o) => o.operationId === "listDevices");
     expect(list?.pathParams).toEqual(["siteId"]);
     expect(list?.queryParams.map((q) => q.name)).toContain("limit");
@@ -21,11 +23,11 @@ describe("EntityIndex", () => {
   });
 
   test("describeEntity throws on unknown tag", () => {
-    expect(() => index.describeEntity("Nope")).toThrow(/unknown entity/i);
+    expect(() => index.describeEntity(asEntityTag("Nope"))).toThrow(/unknown entity/i);
   });
 
   test("findReadOperation refuses a write operation", () => {
-    expect(() => index.findReadOperation("Devices", "adoptDevice")).toThrow(/not a read/i);
+    expect(() => index.findReadOperation(asEntityTag("Devices"), asOperationId("adoptDevice"))).toThrow(/not a read/i);
   });
 });
 
@@ -41,7 +43,7 @@ describe("EntityIndex — declared-but-empty tag", () => {
         },
       },
     },
-  });
+  }, SPEC_URL);
   const emptyIndex = new EntityIndex(emptyTagSpec);
 
   test("listEntities includes Ping with readOps:0 writeOps:0", () => {
@@ -50,11 +52,11 @@ describe("EntityIndex — declared-but-empty tag", () => {
   });
 
   test("describeEntity returns empty operations for declared-but-empty tag", () => {
-    const result = emptyIndex.describeEntity("Ping");
+    const result = emptyIndex.describeEntity(asEntityTag("Ping"));
     expect(result).toEqual({ entity: "Ping", operations: [] });
   });
 
   test("describeEntity still throws for a tag neither declared nor on any operation", () => {
-    expect(() => emptyIndex.describeEntity("Nonexistent")).toThrow(/unknown entity/i);
+    expect(() => emptyIndex.describeEntity(asEntityTag("Nonexistent"))).toThrow(/unknown entity/i);
   });
 });

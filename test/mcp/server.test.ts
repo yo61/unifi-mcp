@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { asApiKey } from "../../src/brands.js";
 import mini from "../helpers/fixtures/mini-spec.json" with { type: "json" };
 import { EntityIndex, buildResolvedSpec } from "../../src/spec/index.js";
 import { UnifiClient } from "../../src/unifi/client.js";
@@ -8,7 +9,7 @@ import type { Config } from "../../src/config.js";
 
 const cfg: Config = {
   baseUrl: new URL("https://gw"),
-  apiKey: "k",
+  apiKey: asApiKey("k"),
   specUrl: "https://gw/s",
   specFreshnessMs: 1,
   cacheDir: "/tmp",
@@ -20,7 +21,9 @@ const cfg: Config = {
 
 describe("buildServer", () => {
   test("registers the four tools", () => {
-    const index = new EntityIndex(buildResolvedSpec(mini));
+    const index = new EntityIndex(
+      buildResolvedSpec(mini, "https://gw/proxy/network/api-docs/integration.json"),
+    );
     const server = buildServer(
       index,
       new UnifiClient(cfg, "/proxy/network/integration"),

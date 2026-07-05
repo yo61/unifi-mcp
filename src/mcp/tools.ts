@@ -1,5 +1,7 @@
 import { z } from "zod";
+import { asEntityTag, asOperationId } from "../brands.js";
 import type { EntityIndex } from "../spec/index.js";
+import { requestPath } from "../spec/operation.js";
 import type { UnifiClient } from "../unifi/client.js";
 import type { ToolResult } from "./errors-to-result.js";
 import { wrapHandler } from "./errors-to-result.js";
@@ -47,7 +49,7 @@ export const buildTools = (index: EntityIndex, client: UnifiClient, log: Logger)
       handler: wrapHandler(
         "unifi_describe_entity",
         async (args: { entity: string }): Promise<ToolResult> => {
-          const described = index.describeEntity(args.entity);
+          const described = index.describeEntity(asEntityTag(args.entity));
           const base = client.basePath;
           return text({
             entity: described.entity,
@@ -55,7 +57,7 @@ export const buildTools = (index: EntityIndex, client: UnifiClient, log: Logger)
             note: `Operations resolve under the reverse-proxy mount '${base}', recovered from the spec URL — the served OpenAPI 'servers' url is root-relative and omits this mount. Call an operation with unifi_get/unifi_invoke (entity + operationId + pathParams/query); the server prepends the mount and builds the full URL.`,
             operations: described.operations.map((o) => ({
               ...o,
-              requestPath: `${base}${o.path}`,
+              requestPath: requestPath(o, base),
             })),
           });
         },
@@ -80,7 +82,10 @@ export const buildTools = (index: EntityIndex, client: UnifiClient, log: Logger)
           pathParams?: Record<string, string>;
           query?: Record<string, string>;
         }): Promise<ToolResult> => {
-          const op = index.findReadOperation(args.entity, args.operationId);
+          const op = index.findReadOperation(
+            asEntityTag(args.entity),
+            asOperationId(args.operationId),
+          );
           return text(
             await client.invoke(op, {
               ...(args.pathParams ? { pathParams: args.pathParams } : {}),
@@ -106,8 +111,8 @@ export const buildTools = (index: EntityIndex, client: UnifiClient, log: Logger)
           body?: unknown;
         }): Promise<ToolResult> => {
           const op = index
-            .describeEntity(args.entity)
-            .operations.find((o) => o.operationId === args.operationId);
+            .describeEntity(asEntityTag(args.entity))
+            .operations.find((o) => o.operationId === asOperationId(args.operationId));
           if (!op)
             throw new Error(`Unknown operation '${args.operationId}' on entity '${args.entity}'.`);
           return text(

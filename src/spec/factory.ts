@@ -47,5 +47,5 @@ export const createSpecStore = (cfg: Config): SpecStore => {
     dereference: async (doc) => openapiDereference(structuredClone(doc) as never),
   };
 
-  return new SpecStore(cfg.specFreshnessMs, deps);
+  return new SpecStore(cfg.specFreshnessMs, cfg.specUrl, deps);
 };

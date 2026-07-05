@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { asApiKey } from "../../src/brands.js";
 import mini from "../helpers/fixtures/mini-spec.json" with { type: "json" };
 import { EntityIndex, buildResolvedSpec } from "../../src/spec/index.js";
 import { UnifiClient } from "../../src/unifi/client.js";
@@ -9,7 +10,7 @@ import { createLogger } from "../../src/logging.js";
 
 const cfg: Config = {
   baseUrl: new URL("https://gw"),
-  apiKey: "k",
+  apiKey: asApiKey("k"),
   specUrl: "https://gw/s",
   specFreshnessMs: 1,
   cacheDir: "/tmp",
@@ -18,7 +19,9 @@ const cfg: Config = {
   allowWrites: false,
   logLevel: "error",
 };
-const index = new EntityIndex(buildResolvedSpec(mini));
+const index = new EntityIndex(
+  buildResolvedSpec(mini, "https://gw/proxy/network/api-docs/integration.json"),
+);
 const tool = (name: string, fetcher?: typeof fetch) =>
   buildTools(
     index,

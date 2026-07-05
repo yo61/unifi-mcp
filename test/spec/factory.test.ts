@@ -2,6 +2,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
+import { asApiKey } from "../../src/brands.js";
 import { createSpecStore } from "../../src/spec/factory.js";
 import type { Config } from "../../src/config.js";
 
@@ -10,7 +11,7 @@ afterEach(() => dir && rmSync(dir, { recursive: true, force: true }));
 
 const cfg = (over: Partial<Config>): Config => ({
   baseUrl: new URL("https://127.0.0.1"),
-  apiKey: "k",
+  apiKey: asApiKey("k"),
   specUrl: "https://127.0.0.1/nope.json",
   specFreshnessMs: 1000,
   cacheDir: dir,

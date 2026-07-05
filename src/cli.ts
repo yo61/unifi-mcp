@@ -5,7 +5,6 @@ import { createLogger } from "./logging.js";
 import { buildServer } from "./mcp/server.js";
 import { EntityIndex } from "./spec/index.js";
 import { createSpecStore } from "./spec/factory.js";
-import { apiBasePath } from "./unifi/base-path.js";
 import { UnifiClient } from "./unifi/client.js";
 
 const main = async (): Promise<void> => {
@@ -23,9 +22,8 @@ const main = async (): Promise<void> => {
   if (source === "bundled") log.warn("using bundled spec — gateway unreachable and no cache");
 
   const index = new EntityIndex(spec);
-  const basePath = apiBasePath(cfg.specUrl, spec.serverBasePath);
-  log.info({ basePath }, "api base path");
-  const client = new UnifiClient(cfg, basePath);
+  log.info({ basePath: spec.apiBasePath }, "api base path");
+  const client = new UnifiClient(cfg, spec.apiBasePath);
   const server = buildServer(index, client, log);
 
   await server.connect(new StdioServerTransport());

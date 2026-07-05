@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { asApiKey, asEntityTag, asOperationId } from "../../src/brands.js";
 import { UnifiClient } from "../../src/unifi/client.js";
 import type { EntityOperation } from "../../src/spec/types.js";
 import type { Config } from "../../src/config.js";
@@ -6,7 +7,7 @@ import { mockFetch } from "../helpers/mock-fetch.js";
 
 const cfg = (over: Partial<Config> = {}): Config => ({
   baseUrl: new URL("https://gw"),
-  apiKey: "k",
+  apiKey: asApiKey("k"),
   specUrl: "https://gw/s.json",
   specFreshnessMs: 1,
   cacheDir: "/tmp",
@@ -18,8 +19,8 @@ const cfg = (over: Partial<Config> = {}): Config => ({
 });
 
 const listDevices: EntityOperation = {
-  operationId: "listDevices",
-  tag: "Devices",
+  operationId: asOperationId("listDevices"),
+  tag: asEntityTag("Devices"),
   method: "GET",
   path: "/v1/sites/{siteId}/devices",
   read: true,
@@ -28,7 +29,7 @@ const listDevices: EntityOperation = {
 };
 const adopt: EntityOperation = {
   ...listDevices,
-  operationId: "adopt",
+  operationId: asOperationId("adopt"),
   method: "POST",
   read: false,
 };
