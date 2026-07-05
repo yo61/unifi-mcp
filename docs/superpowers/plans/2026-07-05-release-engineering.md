@@ -503,7 +503,7 @@ jobs:
             --lockfile=pnpm-lock.yaml
             --format=sarif
             --output=osv.sarif
-      - if: always()
+      - if: always() && github.event_name != 'pull_request'
         uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
         with:
           sarif_file: osv.sarif
@@ -537,7 +537,7 @@ jobs:
           fail-build: true
           severity-cutoff: high
           output-format: sarif
-      - if: always()
+      - if: always() && github.event_name != 'pull_request'
         uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
         with:
           sarif_file: ${{ steps.grype.outputs.sarif }}
