@@ -103,7 +103,16 @@ pnpm dev              # run from source with stdio transport
 pnpm test             # unit + component tests
 pnpm verify           # format + lint + typecheck + test
 pnpm update-spec      # refresh the bundled spec from a live gateway
+pnpm smoke            # build, then exercise the tools against a live controller (.env)
 ```
+
+### Smoke test
+
+`pnpm smoke` builds the server and drives it as a real MCP client over stdio
+against the controller configured in your `.env`. It fetches the live spec,
+lists and describes entities, runs a couple of read queries, and confirms the
+read-only gate refuses a write. It is read-only: nothing on the network is
+changed, and the API key is never printed.
 
 ## Licence
 
