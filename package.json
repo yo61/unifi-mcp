@@ -56,7 +56,6 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
-    "@anthropic-ai/mcpb": "2.1.2",
     "@types/node": "26.1.0",
     "oxfmt": "0.57.0",
     "oxlint": "1.72.0",
