@@ -497,7 +497,7 @@ jobs:
           persist-credentials: false
       - id: osv
         continue-on-error: true
-        uses: google/osv-scanner-action@<PIN current> # resolve SHA
+        uses: google/osv-scanner-action/osv-scanner-action@<PIN current> # resolve SHA — action lives in the /osv-scanner-action subdir, not repo root
         with:
           scan-args: |-
             --lockfile=pnpm-lock.yaml
