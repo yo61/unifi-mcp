@@ -9,6 +9,11 @@ updates:
     groups:
       npm:
         patterns: ["*"]
+    ignore:
+      # Hold TypeScript on 6.x until the toolchain (ty, oxlint/tsgolint, tsx)
+      # supports the 7.0 native compiler. Re-evaluate before removing.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
