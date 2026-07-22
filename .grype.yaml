@@ -1,0 +1,13 @@
+# Grype config for the sbom-scan job (.github/workflows/security.yaml).
+# Auto-detected from the repo root; keep suppressions here in sync with
+# osv-scanner.toml and the Dependabot dismissals.
+ignore:
+  # @hono/node-server serve-static path traversal (Windows, %5C).
+  # Reachable only via Hono's HTTP transport; this server runs stdio-only
+  # (src/cli.ts uses StdioServerTransport), so the vulnerable code path is
+  # never invoked. No patched 1.x exists and @modelcontextprotocol/sdk pins
+  # ^1.19.9, so an in-range bump is impossible. Remove if an HTTP/Streamable
+  # transport is ever added.
+  - vulnerability: GHSA-frvp-7c67-39w9
+    package:
+      name: "@hono/node-server"
