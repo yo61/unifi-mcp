@@ -1,0 +1,13 @@
+# Suppressions for osv-scanner (see .github/workflows/security.yaml).
+# Each entry must state why the advisory is not applicable and carry an
+# ignoreUntil review date so suppressions expire rather than rot.
+
+[[IgnoredVulns]]
+id = "GHSA-frvp-7c67-39w9"
+ignoreUntil = 2026-10-20
+# @hono/node-server serve-static path traversal (Windows, %5C). Reachable only
+# via Hono's HTTP transport; this server runs stdio-only (src/cli.ts uses
+# StdioServerTransport), so the vulnerable code path is never invoked. No
+# patched 1.x exists and @modelcontextprotocol/sdk pins ^1.19.9, so an in-range
+# bump is impossible. Drop this entry if an HTTP/Streamable transport is added.
+reason = "serve-static path traversal reachable only via HTTP transport; server is stdio-only"
