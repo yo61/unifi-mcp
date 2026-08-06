@@ -1,3 +1,4 @@
+import { createRequire } from "node:module";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { Logger } from "../logging.js";
 import type { EntityIndex } from "../spec/index.js";
@@ -7,12 +8,17 @@ import { buildTools } from "./tools.js";
 
 export type UnifiMcpServer = McpServer & { _registeredToolNames(): readonly string[] };
 
+// Read at runtime rather than hardcoded: release-please bumps package.json, so a
+// literal here silently drifts. Resolves to the package root from both
+// src/mcp/server.ts and dist/mcp/server.js, and npm always publishes package.json.
+const { version } = createRequire(import.meta.url)("../../package.json") as { version: string };
+
 export const buildServer = (
   index: EntityIndex,
   client: UnifiClient,
   log: Logger,
 ): UnifiMcpServer => {
-  const server = new McpServer({ name: "unifi-mcp", version: "0.1.0" }) as UnifiMcpServer;
+  const server = new McpServer({ name: "unifi-mcp", version }) as UnifiMcpServer;
   const registered: string[] = [];
 
   // buildTools already wraps each handler (wrapHandler) with this logger, so
