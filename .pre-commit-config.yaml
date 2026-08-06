@@ -43,6 +43,12 @@ repos:
         entry: pnpm typecheck
         language: system
         pass_filenames: false
+      - id: scripts-syntax
+        name: node --check scripts/
+        entry: pnpm check:scripts
+        language: system
+        files: ^scripts/.*\.mjs$
+        pass_filenames: false
       - id: vitest
         name: vitest (unit + component)
         entry: pnpm vitest run --exclude test/integration
