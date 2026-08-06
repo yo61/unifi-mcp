@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.2.1](https://github.com/yo61/unifi-mcp/compare/v0.2.0...v0.2.1) (2026-08-06)
+
+
+### Bug Fixes
+
+* Bump MCP SDK to 1.30.0 to clear hono/node-server advisory ([3f0432c](https://github.com/yo61/unifi-mcp/commit/3f0432c1a5a4f958e01354b8a8d03389151b7329))
+* Bump MCP SDK to 1.30.0 to clear hono/node-server advisory ([12b495c](https://github.com/yo61/unifi-mcp/commit/12b495ce8276690247501edce849103d74894f86))
+* Report the real package version over MCP ([895e8c6](https://github.com/yo61/unifi-mcp/commit/895e8c64c72d4fe26a122b4540af70bdb9e7f428))
+* Report the real package version over MCP ([32217c8](https://github.com/yo61/unifi-mcp/commit/32217c8854dc24ad6812141ae776c6dde3d10a01))
+
+
+### Documentation
+
+* Record advisory-suppression decision and date Security criteria ([9f81d0c](https://github.com/yo61/unifi-mcp/commit/9f81d0cd95a81eb8cd2fbcea739e2ec6a0e567d7))
+* Record advisory-suppression decision and date Security criteria ([8c96315](https://github.com/yo61/unifi-mcp/commit/8c96315bee17c5e70498bdde1ca60ec3dfce8aea))
+
 ## [0.2.0](https://github.com/yo61/unifi-mcp/compare/v0.1.0...v0.2.0) (2026-07-05)
 
 
