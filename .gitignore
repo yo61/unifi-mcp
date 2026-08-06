@@ -30,3 +30,6 @@ pnpm-debug.log*
 # Cache
 .cache/
 .superpowers/
+
+# Agent worktrees (machine-local checkouts of other branches, not project source)
+.claude/worktrees/
