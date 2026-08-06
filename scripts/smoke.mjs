@@ -122,6 +122,10 @@ const main = async () => {
   for (const e of list) {
     if (e.readOps === 0) continue;
     const d = asJson(
+      // Sequential by design: this loop breaks at the first entity with a
+      // {siteId}-only read op, so Promise.all would describe every entity on the
+      // controller to find one example.
+      // eslint-disable-next-line no-await-in-loop
       await client.callTool({ name: "unifi_describe_entity", arguments: { entity: e.name } }),
     );
     const op = (d.operations ?? []).find(
@@ -157,6 +161,10 @@ const main = async () => {
   for (const e of list) {
     if (e.writeOps === 0) continue;
     const d = asJson(
+      // Sequential by design: this loop breaks at the first entity with a write
+      // op, so Promise.all would describe every entity on the controller to find
+      // one example.
+      // eslint-disable-next-line no-await-in-loop
       await client.callTool({ name: "unifi_describe_entity", arguments: { entity: e.name } }),
     );
     const w = (d.operations ?? []).find((o) => !o.read);
