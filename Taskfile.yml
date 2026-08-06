@@ -32,12 +32,18 @@ tasks:
     cmds:
       - pnpm test
 
+  dev:scripts-check:
+    desc: Syntax-check standalone scripts (tsconfig covers src/ only, vitest test/ only)
+    cmds:
+      - pnpm check:scripts
+
   dev:check:
-    desc: Full quality gate — format-check, lint, typecheck, tests
+    desc: Full quality gate — format-check, lint, typecheck, scripts, tests
     cmds:
       - task: dev:fmt-check
       - task: dev:lint
       - task: dev:typecheck
+      - task: dev:scripts-check
       - task: dev:test
 
   smoke:

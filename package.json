@@ -41,9 +41,10 @@
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "typecheck": "tsc --noEmit",
+    "check:scripts": "for f in scripts/*.mjs; do [ -e \"$f\" ] || continue; node --check \"$f\" || exit 1; done",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
+    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm check:scripts && pnpm test",
     "smoke": "pnpm build && node scripts/smoke.mjs",
     "update-spec": "node scripts/update-spec.mjs",
     "prepublishOnly": "pnpm verify && pnpm build"
