@@ -24,4 +24,6 @@
 
 **Source:** release-engineering design 2026-07-05
 
-**Last triggered:** never
+**Last triggered:** 2026-08-06 — scheduled Security run failed on five advisories
+in transitive dependencies of `@modelcontextprotocol/sdk` (PRs #34, #36). Both
+the osv-scanner and grype criteria fired.
