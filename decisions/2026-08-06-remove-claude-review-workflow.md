@@ -21,7 +21,7 @@ after this workflow shipped. Reviews arrive as `yo61-lastlight[bot]`, but the
 job grants only `pull-requests: read`, so `GITHUB_TOKEN` cannot post a review at
 all. The GitHub write capability comes from the org-wide lastlight installation
 (`repository_selection: all`), not from this workflow. What the workflow
-uniquely contributes is the *invocation* and the Anthropic token that pays for
+uniquely contributes is the _invocation_ and the Anthropic token that pays for
 it.
 
 **The variable is a cost knob, not a rollout gate.** Checked across all ten
@@ -57,24 +57,36 @@ cannot leave a required check permanently pending.
 
 ## Trade-offs accepted
 
-- No automated approval on this repo. `required_approving_review_count: 1` is now
-  satisfied only by a manual approval or the repo-admin bypass, exactly as on the
-  other nine repos. Every PR authored by Robin needs an explicit admin merge,
-  since GitHub forbids self-approval.
-- Auto-merge on release PRs is foreclosed. It depended on lastlight supplying the
-  approval; without it, `allow_auto_merge: true` has nothing to trigger on and
-  release PRs are admin-merged. This supersedes the auto-merge option considered
-  while investigating the #37 stall.
+- No automated approval on this repo. Rather than leave
+  `required_approving_review_count: 1` satisfiable only by the repo-admin bypass —
+  a rule overridden on every merge is worse than no rule — the companion change
+  github-repos#47 dropped it to the module default of 0. Applied and verified:
+  the `Default Branch` ruleset now reports `required_approving_review_count: 0`.
+- The gate is now the `Required status checks` ruleset alone: six contexts,
+  **no bypass actors**, binding admins too. Strictly less overridable than the
+  review requirement it replaces.
+- No human-approval requirement. An external fork PR can merge on green CI alone.
+  Accepted because the previous approver was automated and its approval was
+  overridable by the admin bypass anyway, and because CI includes `osv-scanner`
+  and `sbom-scan` with no bypass.
+- Auto-merge on release PRs is foreclosed, since it depended on lastlight
+  supplying an approval. No practical loss: `allow_auto_merge: true` is set at
+  repo level but has never been armed on a single PR.
 - PRs lose an automated review pass. Accepted: CI, the security scanners, and
   prek remain, and they are what actually gate merges.
 
-## Follow-up not done here
+## Credentials removed
 
-The `CLAUDE_CODE_OAUTH_TOKEN` secret and `CLAUDE_REVIEW_ENABLED` variable are now
-dead. Both should be deleted from the repo's Actions settings — the secret in
-particular, as an unrotated credential dating to 2026-07-05. Left out of this
-change because deleting a secret destroys its value and is not revertible by
-merge.
+The `CLAUDE_CODE_OAUTH_TOKEN` secret and `CLAUDE_REVIEW_ENABLED` variable were
+deleted from the repo's Actions settings on 2026-08-06 and verified gone. The
+secret in particular was an unrotated credential dating to 2026-07-05. Done out
+of band rather than in this PR: deleting a secret destroys its value and is not
+revertible by reverting a merge.
+
+Deleting the variable first was safe in either order. The job's `if:` requires
+`vars.CLAUDE_REVIEW_ENABLED == 'true'`, so with the variable gone the workflow
+skipped rather than failed while it still existed on `main` — a consequence of
+the original design deliberately making it inert-unless-enabled.
 
 ## Supersedes
 
