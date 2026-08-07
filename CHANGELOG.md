@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.2](https://github.com/yo61/unifi-mcp/compare/v0.2.1...v0.2.2) (2026-08-07)
+
+
+### Bug Fixes
+
+* **deps:** Bump js-yaml to 4.3.1 for CVE-2026-59870 ([bfa9057](https://github.com/yo61/unifi-mcp/commit/bfa9057de14ebffa34a52832cc18427822907b6a))
+
+
+### Documentation
+
+* Correct the review-removal record and fix markdown formatting ([622c302](https://github.com/yo61/unifi-mcp/commit/622c302e365677f875ce889f3ccf7dd3c448507b))
+
 ## [0.2.1](https://github.com/yo61/unifi-mcp/compare/v0.2.0...v0.2.1) (2026-08-06)
 
 
