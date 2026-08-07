@@ -5,7 +5,6 @@
 
 ### Bug Fixes
 
-* **deps:** Bump js-yaml to 4.3.1 for CVE-2026-59870 ([5674005](https://github.com/yo61/unifi-mcp/commit/5674005a797629c160c51bf30a0db5d3e423dd85))
 * **deps:** Bump js-yaml to 4.3.1 for CVE-2026-59870 ([bfa9057](https://github.com/yo61/unifi-mcp/commit/bfa9057de14ebffa34a52832cc18427822907b6a))
 
 
