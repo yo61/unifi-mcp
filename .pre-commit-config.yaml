@@ -30,7 +30,10 @@ repos:
         name: oxfmt --check
         entry: pnpm oxfmt --check
         language: system
-        types_or: [ts, tsx, javascript, jsx]
+        # oxfmt formats markdown as well as TS/JS, and CI runs it over the
+        # whole repo. Without markdown here, a docs-only commit skips the
+        # hook locally and fails CI instead.
+        types_or: [ts, tsx, javascript, jsx, markdown]
         pass_filenames: false
       - id: oxlint
         name: oxlint
