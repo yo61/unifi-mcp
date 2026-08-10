@@ -1,0 +1,18 @@
+# gitleaks configuration.
+#
+# Inherits the upstream default ruleset; the entries below only carve out
+# known-safe paths.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = """
+spec/integration.bundled.json is vendored, not authored here: scripts/update-spec.mjs
+downloads it from https://github.com/tmcpro/unifi-network-api and bundles it. Its
+schema examples include placeholder credential fields (x_mgmt_key and similar) that
+trip the generic-api-key rule. Those values are published in that public repo and are
+not credentials for any controller of ours, so scanning them adds noise without adding
+protection. Regenerating the spec would reintroduce any fingerprint-based suppression,
+hence a path allowlist rather than .gitleaksignore entries.
+"""
+paths = ['''^spec/.*\.bundled\.json$''']
