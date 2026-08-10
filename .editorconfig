@@ -1,0 +1,25 @@
+# Checked in so formatting is reproducible across machines and CI.
+#
+# oxfmt reads .editorconfig and walks up the directory tree. Without a file
+# here, it picked up whatever personal ~/.editorconfig a developer happened to
+# have, while CI — which has none — fell back to oxfmt's defaults. The same
+# files then passed locally and failed in CI.
+#
+# root = true stops that upward search, so the repo's formatting contract lives
+# entirely in the repo. Values here mirror .oxfmtrc.json; keep the two in step.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 2
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Markdown uses 4-column list indentation, and trailing whitespace is
+# significant (two spaces = hard line break).
+[*.md]
+indent_size = 4
+tab_width = 4
+trim_trailing_whitespace = false

@@ -1,6 +1,0 @@
-[format]
-line-width = 100
-indent-width = 2
-quote-style = "double"
-trailing-comma = "all"
-semicolons = true
