@@ -1,25 +1,43 @@
 # unifi-mcp MVP Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development
+> (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use
+> checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** A read-only MCP server for the UniFi Local Network Integration API whose four generic tools are generated at runtime from the API's own OpenAPI document — zero per-resource code.
+**Goal:** A read-only MCP server for the UniFi Local Network Integration API whose four generic
+tools are generated at runtime from the API's own OpenAPI document — zero per-resource code.
 
-**Architecture:** Spec-as-runtime-truth dispatcher. `SpecStore` resolves the OpenAPI doc via a threshold-gated three-source cascade (fresh cache → live fetch → stale cache/bundled). `EntityIndex` groups operations by OpenAPI `tag` into "entities". `UnifiClient` is an anti-corruption layer that binds an operation's path/query/body and calls the gateway. Four generic MCP tools sit on top.
+**Architecture:** Spec-as-runtime-truth dispatcher. `SpecStore` resolves the OpenAPI doc via a
+threshold-gated three-source cascade (fresh cache → live fetch → stale cache/bundled). `EntityIndex`
+groups operations by OpenAPI `tag` into "entities". `UnifiClient` is an anti-corruption layer that
+binds an operation's path/query/body and calls the gateway. Four generic MCP tools sit on top.
 
-**Tech Stack:** TypeScript (ESM, Node 22), `@modelcontextprotocol/sdk`, `zod`, `@readme/openapi-parser`, `undici`, `pino`; tooling: pnpm, oxlint, oxfmt, vitest, tsc.
+**Tech Stack:** TypeScript (ESM, Node 22), `@modelcontextprotocol/sdk`, `zod`,
+`@readme/openapi-parser`, `undici`, `pino`; tooling: pnpm, oxlint, oxfmt, vitest, tsc.
 
 ## Global Constraints
 
 - **Node:** `>=22.0.0`; ESM only (`"type": "module"`).
-- **Dependencies pinned exact** (no `^`/`~`); install with `pnpm add --save-exact`. Look up current stable versions at install time — do not assume.
-- **Tool names:** `unifi_list_entities`, `unifi_describe_entity`, `unifi_get`, `unifi_invoke` (snake_case, `unifi_` prefix).
-- **Auth:** UniFi Local Integration API uses the `X-API-KEY` header (key generated in UniFi Network → Settings → Integrations). Never hard-code or log the key.
-- **TLS:** UniFi gateways serve a self-signed cert. Default to **normal verification**. Support `UNIFI_CA_CERT` (path to the controller's cert/CA PEM) → verify against it via a scoped `undici` `Agent({ connect: { ca } })`. Support `UNIFI_INSECURE_TLS=true` as an explicit last-resort opt-in that disables verification, with a loud startup `log.warn`. Never default to disabled verification; never use the global `NODE_TLS_REJECT_UNAUTHORIZED`.
-- **Read-only v1:** only `GET` operations are exposed to `unifi_get`; `UnifiClient` refuses any non-GET method while `allowWrites === false` (default). `unifi_invoke` exists but is gated off.
-- **Spec URL default:** `<baseUrl>/proxy/network/api-docs/integration.json`. Operation base path comes from the spec's `servers[0].url`.
-- **Errors:** typed `UnifiError` subclasses; caught at the tool boundary, logged to stderr, returned as `isError` ToolResults. stdout is reserved for JSON-RPC.
+- **Dependencies pinned exact** (no `^`/`~`); install with `pnpm add --save-exact`. Look up current
+  stable versions at install time — do not assume.
+- **Tool names:** `unifi_list_entities`, `unifi_describe_entity`, `unifi_get`, `unifi_invoke`
+  (snake_case, `unifi_` prefix).
+- **Auth:** UniFi Local Integration API uses the `X-API-KEY` header (key generated in UniFi Network
+  → Settings → Integrations). Never hard-code or log the key.
+- **TLS:** UniFi gateways serve a self-signed cert. Default to **normal verification**. Support
+  `UNIFI_CA_CERT` (path to the controller's cert/CA PEM) → verify against it via a scoped `undici`
+  `Agent({ connect: { ca } })`. Support `UNIFI_INSECURE_TLS=true` as an explicit last-resort opt-in
+  that disables verification, with a loud startup `log.warn`. Never default to disabled
+  verification; never use the global `NODE_TLS_REJECT_UNAUTHORIZED`.
+- **Read-only v1:** only `GET` operations are exposed to `unifi_get`; `UnifiClient` refuses any
+  non-GET method while `allowWrites === false` (default). `unifi_invoke` exists but is gated off.
+- **Spec URL default:** `<baseUrl>/proxy/network/api-docs/integration.json`. Operation base path
+  comes from the spec's `servers[0].url`.
+- **Errors:** typed `UnifiError` subclasses; caught at the tool boundary, logged to stderr, returned
+  as `isError` ToolResults. stdout is reserved for JSON-RPC.
 - **Code limits:** ≤100 lines/function, ≤5 positional params, 100-char lines, absolute imports only.
-- **Commits:** conventional-commit prefixes; end message bodies with the Co-Authored-By trailer. Work stays on branch `feat/spec-driven-core` (never `main`).
+- **Commits:** conventional-commit prefixes; end message bodies with the Co-Authored-By trailer.
+  Work stays on branch `feat/spec-driven-core` (never `main`).
 
 ---
 
@@ -76,14 +94,23 @@ LICENSE
 ### Task 1: Project scaffold + tooling
 
 **Files:**
-- Create: `package.json`, `tsconfig.json`, `tsconfig.build.json`, `vitest.config.ts`, `.oxlintrc.json`, `.oxfmt.toml`, `.markdownlint.jsonc`, `.markdownlint-cli2.jsonc`, `.prettierignore`, `.gitignore`, `pnpm-workspace.yaml`, `.pre-commit-config.yaml`, `test/sanity.test.ts`
+
+- Create: `package.json`, `tsconfig.json`, `tsconfig.build.json`, `vitest.config.ts`,
+  `.oxlintrc.json`, `.oxfmt.toml`, `.markdownlint.jsonc`, `.markdownlint-cli2.jsonc`,
+  `.prettierignore`, `.gitignore`, `pnpm-workspace.yaml`, `.pre-commit-config.yaml`,
+  `test/sanity.test.ts`
 
 **Interfaces:**
-- Produces: a green `pnpm verify` gate (format:check, lint, typecheck, test) that every later task relies on.
+
+- Produces: a green `pnpm verify` gate (format:check, lint, typecheck, test) that every later task
+  relies on.
 
 - [ ] **Step 1: Copy tooling config verbatim from civi-mcp**
 
-Copy these files unchanged from `../civi-mcp/`: `.oxfmt.toml`, `.markdownlint.jsonc`, `.markdownlint-cli2.jsonc`, `.prettierignore`, `tsconfig.json`, `tsconfig.build.json`, `vitest.config.ts`, `.gitignore`, `.pre-commit-config.yaml`. Copy `.oxlintrc.json` unchanged. Copy `pnpm-workspace.yaml` unchanged.
+Copy these files unchanged from `../civi-mcp/`: `.oxfmt.toml`, `.markdownlint.jsonc`,
+`.markdownlint-cli2.jsonc`, `.prettierignore`, `tsconfig.json`, `tsconfig.build.json`,
+`vitest.config.ts`, `.gitignore`, `.pre-commit-config.yaml`. Copy `.oxlintrc.json` unchanged. Copy
+`pnpm-workspace.yaml` unchanged.
 
 - [ ] **Step 2: Write `package.json`**
 
@@ -120,15 +147,18 @@ Copy these files unchanged from `../civi-mcp/`: `.oxfmt.toml`, `.markdownlint.js
 - [ ] **Step 3: Install dependencies (pin exact, look up current stable)**
 
 Run:
+
 ```bash
 pnpm add --save-exact @modelcontextprotocol/sdk zod pino undici @readme/openapi-parser
 pnpm add --save-exact -D @types/node oxfmt oxlint tsx typescript vitest @anthropic-ai/mcpb
 ```
+
 Record the resolved exact versions in `package.json` (no `^`). Expected: `pnpm-lock.yaml` created.
 
 - [ ] **Step 4: Write the sanity test**
 
 `test/sanity.test.ts`:
+
 ```ts
 import { expect, test } from "vitest";
 
@@ -158,16 +188,22 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 2: Error hierarchy + PromiseCache + logger
 
 **Files:**
+
 - Create: `src/http/errors.ts`, `src/http/cache.ts`, `src/logging.ts`
 - Test: `test/http/cache.test.ts`
 
 **Interfaces:**
+
 - Produces:
   - `class UnifiError extends Error` (ctor `(message, options?: { cause?: unknown })`)
-  - `class UnifiAuthError extends UnifiError` (ctor `(message, options?: { status?: number; cause?: unknown })`, readonly `status?`)
-  - `class UnifiApiError extends UnifiError` (ctor `(message, options: { operationId: string; status?: number; cause?: unknown })`, readonly `operationId`, readonly `status?`)
+  - `class UnifiAuthError extends UnifiError` (ctor
+    `(message, options?: { status?: number; cause?: unknown })`, readonly `status?`)
+  - `class UnifiApiError extends UnifiError` (ctor
+    `(message, options: { operationId: string; status?: number; cause?: unknown })`, readonly
+    `operationId`, readonly `status?`)
   - `class UnifiTransportError extends UnifiError`
-  - `class PromiseCache<K, V>` with `getOrLoad(key, loader): Promise<V>`, `invalidate(key)`, `clear()`
+  - `class PromiseCache<K, V>` with `getOrLoad(key, loader): Promise<V>`, `invalidate(key)`,
+    `clear()`
   - `createLogger(level): Logger` and `type Logger = pino.Logger`
 
 - [ ] **Step 1: Write `src/http/errors.ts`**
@@ -229,6 +265,7 @@ export const createLogger = (level: "error" | "warn" | "info" | "debug"): Logger
 - [ ] **Step 4: Write the failing cache test**
 
 `test/http/cache.test.ts`:
+
 ```ts
 import { describe, expect, test, vi } from "vitest";
 import { PromiseCache } from "../../src/http/cache.js";
@@ -273,17 +310,21 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 3: Config
 
 **Files:**
+
 - Create: `src/config.ts`
 - Test: `test/config.test.ts`
 
 **Interfaces:**
+
 - Produces:
-  - `type Config = { baseUrl: URL; apiKey: string; specUrl: string; specFile?: string; specFreshnessMs: number; cacheDir: string; timeoutMs: number; caCert?: string; insecureTls: boolean; allowWrites: boolean; logLevel: "error"|"warn"|"info"|"debug" }` (`caCert` holds the PEM **contents**, read from the `UNIFI_CA_CERT` path at load time)
+  - `type Config = { baseUrl: URL; apiKey: string; specUrl: string; specFile?: string; specFreshnessMs: number; cacheDir: string; timeoutMs: number; caCert?: string; insecureTls: boolean; allowWrites: boolean; logLevel: "error"|"warn"|"info"|"debug" }` <!-- markdownlint-disable-line MD013 -- one code span, no wrap point -->
+    (`caCert` holds the PEM **contents**, read from the `UNIFI_CA_CERT` path at load time)
   - `loadConfig(env: Record<string, string | undefined>): Config`
 
 - [ ] **Step 1: Write the failing test**
 
 `test/config.test.ts`:
+
 ```ts
 import { describe, expect, test } from "vitest";
 import { loadConfig } from "../src/config.js";
@@ -422,12 +463,15 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 4: HTTP transport (`request`)
 
 **Files:**
+
 - Create: `src/http/request.ts`, `test/helpers/mock-fetch.ts`
 - Test: `test/http/request.test.ts`
 
 **Interfaces:**
+
 - Consumes: `UnifiAuthError`, `UnifiApiError`, `UnifiTransportError` (Task 2).
 - Produces:
+
   ```ts
   type RequestInput = {
     url: URL; method: string; apiKey: string; timeoutMs: number;
@@ -436,7 +480,9 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
   };
   request<T>(input: RequestInput): Promise<T>;
   ```
-  - `mockFetch(routes: Record<string, unknown>)` — keyed by `"METHOD pathname"`, returns a `vi.fn<typeof fetch>`.
+
+  - `mockFetch(routes: Record<string, unknown>)` — keyed by `"METHOD pathname"`, returns a
+    `vi.fn<typeof fetch>`.
 
 - [ ] **Step 1: Write `test/helpers/mock-fetch.ts`**
 
@@ -462,6 +508,7 @@ export const mockFetch = (routes: RouteMap) =>
 - [ ] **Step 2: Write the failing test**
 
 `test/http/request.test.ts`:
+
 ```ts
 import { describe, expect, test, vi } from "vitest";
 import { UnifiApiError, UnifiAuthError, UnifiTransportError } from "../../src/http/errors.js";
@@ -617,7 +664,8 @@ export const request = async <T>(input: RequestInput): Promise<T> => {
 };
 ```
 
-Note: the `dispatcher` is only applied when using the real `fetch` (undici). When a test injects `fetcher`, `dispatcher` is omitted so mocks stay simple.
+Note: the `dispatcher` is only applied when using the real `fetch` (undici). When a test injects
+`fetcher`, `dispatcher` is omitted so mocks stay simple.
 
 - [ ] **Step 5: Run it — expect PASS**
 
@@ -637,10 +685,14 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 5: Bundled spec + update script + spec types
 
 **Files:**
-- Create: `spec/integration.bundled.json`, `scripts/update-spec.mjs`, `src/spec/types.ts`, `test/helpers/fixtures/mini-spec.json`
+
+- Create: `spec/integration.bundled.json`, `scripts/update-spec.mjs`, `src/spec/types.ts`,
+  `test/helpers/fixtures/mini-spec.json`
 
 **Interfaces:**
+
 - Produces:
+
   ```ts
   type ResolvedSpec = {
     tags: ReadonlyArray<{ name: string; description?: string }>;
@@ -662,11 +714,15 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 - [ ] **Step 2: Add the bundled spec**
 
 Download the current official integration spec into `spec/integration.bundled.json`:
+
 ```bash
 curl -sL "https://raw.githubusercontent.com/tmcpro/unifi-network-api/71bc0572d752a910196ffaeccf561529e26fe607/openapi/openapi.yaml" -o /tmp/unifi-spec.yaml
 node -e "const YAML=require('yaml');const fs=require('fs');fs.writeFileSync('spec/integration.bundled.json',JSON.stringify(YAML.parse(fs.readFileSync('/tmp/unifi-spec.yaml','utf8')),null,2))" || true
 ```
-If `yaml` is unavailable, install it dev-only (`pnpm add --save-exact -D yaml`) or hand-convert. The bundled spec is committed as JSON. (Ubiquiti does not publish a canonical static URL; this community mirror is the interim source — see `update-spec.mjs` header.)
+
+If `yaml` is unavailable, install it dev-only (`pnpm add --save-exact -D yaml`) or hand-convert. The
+bundled spec is committed as JSON. (Ubiquiti does not publish a canonical static URL; this community
+mirror is the interim source — see `update-spec.mjs` header.)
 
 - [ ] **Step 3: Write `scripts/update-spec.mjs`**
 
@@ -689,7 +745,8 @@ writeFileSync("spec/integration.bundled.json", `${JSON.stringify(spec, null, 2)}
 process.stderr.write(`update-spec: wrote ${spec.paths ? Object.keys(spec.paths).length : 0} paths\n`);
 ```
 
-- [ ] **Step 4: Write `test/helpers/fixtures/mini-spec.json`** — a hand-authored minimal OpenAPI 3.1 doc used by index/store tests:
+- [ ] **Step 4: Write `test/helpers/fixtures/mini-spec.json`** — a hand-authored minimal OpenAPI 3.1
+  doc used by index/store tests:
 
 ```json
 {
@@ -741,12 +798,15 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 6: EntityIndex
 
 **Files:**
+
 - Create: `src/spec/index.ts`
 - Test: `test/spec/index.test.ts`
 
 **Interfaces:**
+
 - Consumes: `ResolvedSpec`, `EntityOperation`, `EntitySummary`, `EntityDescribe` (Task 5).
 - Produces:
+
   ```ts
   buildResolvedSpec(deref: unknown): ResolvedSpec;   // maps a dereferenced OpenAPI doc → ResolvedSpec
   class EntityIndex {
@@ -760,6 +820,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 - [ ] **Step 1: Write the failing test**
 
 `test/spec/index.test.ts`:
+
 ```ts
 import { describe, expect, test } from "vitest";
 import mini from "../helpers/fixtures/mini-spec.json" with { type: "json" };
@@ -932,12 +993,15 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 7: SpecStore (three-source cascade)
 
 **Files:**
+
 - Create: `src/spec/store.ts`
 - Test: `test/spec/store.test.ts`
 
 **Interfaces:**
+
 - Consumes: `request` (Task 4), `buildResolvedSpec` (Task 6), `ResolvedSpec` (Task 5).
 - Produces:
+
   ```ts
   type SpecSource = "fresh-cache" | "live" | "stale-cache" | "bundled";
   type SpecStoreDeps = {
@@ -953,11 +1017,13 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
     resolve(): Promise<{ spec: ResolvedSpec; source: SpecSource }>;
   }
   ```
+
   (Dependencies are injected so the cascade is unit-tested without fs/network/clock.)
 
 - [ ] **Step 1: Write the failing test**
 
 `test/spec/store.test.ts`:
+
 ```ts
 import { describe, expect, test, vi } from "vitest";
 import mini from "../helpers/fixtures/mini-spec.json" with { type: "json" };
@@ -1093,16 +1159,22 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 8: SpecStore wiring factory (real fs/network deps)
 
 **Files:**
+
 - Create: `src/spec/factory.ts`
 - Test: `test/spec/factory.test.ts`
 
 **Interfaces:**
-- Consumes: `Config` (Task 3), `request` (Task 4), `SpecStore`/`SpecStoreDeps` (Task 7).
-- Produces: `createSpecStore(cfg: Config): SpecStore` — builds real deps: cache file at `<cacheDir>/integration-spec.json`, live fetch via `request`, bundled read from the packaged `spec/integration.bundled.json`, dereference via `@readme/openapi-parser`.
 
-- [ ] **Step 1: Write the failing test** (verifies the cache file path + bundled resolution, using a temp dir and no network)
+- Consumes: `Config` (Task 3), `request` (Task 4), `SpecStore`/`SpecStoreDeps` (Task 7).
+- Produces: `createSpecStore(cfg: Config): SpecStore` — builds real deps: cache file at
+  `<cacheDir>/integration-spec.json`, live fetch via `request`, bundled read from the packaged
+  `spec/integration.bundled.json`, dereference via `@readme/openapi-parser`.
+
+- [ ] **Step 1: Write the failing test** (verifies the cache file path + bundled resolution, using a
+  temp dir and no network)
 
 `test/spec/factory.test.ts`:
+
 ```ts
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -1207,12 +1279,15 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 9: UnifiClient (anti-corruption layer)
 
 **Files:**
+
 - Create: `src/unifi/client.ts`
 - Test: `test/unifi/client.test.ts`
 
 **Interfaces:**
+
 - Consumes: `EntityOperation`, `ResolvedSpec` (Task 5), `request` (Task 4), `Config` (Task 3).
 - Produces:
+
   ```ts
   type InvokeArgs = { pathParams?: Record<string, string>; query?: Record<string, string>; body?: unknown };
   class UnifiClient {
@@ -1224,6 +1299,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 - [ ] **Step 1: Write the failing test**
 
 `test/unifi/client.test.ts`:
+
 ```ts
 import { describe, expect, test } from "vitest";
 import { UnifiClient } from "../../src/unifi/client.js";
@@ -1266,7 +1342,9 @@ describe("UnifiClient", () => {
   });
 });
 ```
-(Inject the fetcher by passing it through config-independent `request`; the client accepts an optional `fetcher` param — see impl.)
+
+(Inject the fetcher by passing it through config-independent `request`; the client accepts an
+optional `fetcher` param — see impl.)
 
 - [ ] **Step 2: Run it — expect FAIL**
 
@@ -1344,12 +1422,16 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 10: The four MCP tools
 
 **Files:**
+
 - Create: `src/mcp/tools.ts`, `src/mcp/errors-to-result.ts`
 - Test: `test/mcp/tools.test.ts`
 
 **Interfaces:**
-- Consumes: `EntityIndex` (Task 6), `UnifiClient` (Task 9), `Logger` (Task 2), `Unifi*Error` (Task 2).
+
+- Consumes: `EntityIndex` (Task 6), `UnifiClient` (Task 9), `Logger` (Task 2), `Unifi*Error` (Task
+  2).
 - Produces:
+
   ```ts
   type ToolResult = { content: ReadonlyArray<{ type: "text"; text: string }>; isError?: boolean };
   wrapHandler<A>(toolName: string, handler: (a: A) => Promise<ToolResult>, log: Logger): (a: A) => Promise<ToolResult>;
@@ -1398,6 +1480,7 @@ export const wrapHandler = <A>(
 - [ ] **Step 2: Write the failing test**
 
 `test/mcp/tools.test.ts`:
+
 ```ts
 import { describe, expect, test } from "vitest";
 import mini from "../helpers/fixtures/mini-spec.json" with { type: "json" };
@@ -1561,16 +1644,22 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 11: Server wiring + CLI entrypoint
 
 **Files:**
+
 - Create: `src/mcp/server.ts`, `src/cli.ts`
 - Test: `test/mcp/server.test.ts`
 
 **Interfaces:**
-- Consumes: `buildTools` (Task 10 — already wraps handlers, takes the logger), `EntityIndex` (Task 6), `UnifiClient` (Task 9), `createSpecStore` (Task 8), `loadConfig` (Task 3), `createLogger` (Task 2).
-- Produces: `buildServer(index, client, log): UnifiMcpServer` with `_registeredToolNames(): readonly string[]`; `cli.ts` default entrypoint.
+
+- Consumes: `buildTools` (Task 10 — already wraps handlers, takes the logger), `EntityIndex` (Task
+  6), `UnifiClient` (Task 9), `createSpecStore` (Task 8), `loadConfig` (Task 3), `createLogger`
+  (Task 2).
+- Produces: `buildServer(index, client, log): UnifiMcpServer` with
+  `_registeredToolNames(): readonly string[]`; `cli.ts` default entrypoint.
 
 - [ ] **Step 1: Write the failing test**
 
 `test/mcp/server.test.ts`:
+
 ```ts
 import { describe, expect, test } from "vitest";
 import mini from "../helpers/fixtures/mini-spec.json" with { type: "json" };
@@ -1681,6 +1770,7 @@ main().catch((err: unknown) => {
 
 Run: `pnpm verify`
 Expected: all clean, all tests pass.
+
 ```bash
 git add -A
 git commit -m "feat: wire MCP server and CLI entrypoint
@@ -1693,10 +1783,13 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 12: Project docs (README, LICENSE, .env.example)
 
 **Files:**
+
 - Create: `README.md`, `LICENSE`, `.env.example`
 
 **Interfaces:**
-- Produces: the minimum docs a user needs to install and configure the server. (CI, release, and publishing are the separate release-engineering plan.)
+
+- Produces: the minimum docs a user needs to install and configure the server. (CI, release, and
+  publishing are the separate release-engineering plan.)
 
 - [ ] **Step 1: Write `LICENSE`** — MIT, copyright holder "Robin Bowes".
 
@@ -1716,7 +1809,11 @@ UNIFI_API_KEY=your-integration-api-key
 
 - [ ] **Step 3: Write `README.md`**
 
-Cover, in prose adapted from `../civi-mcp/README.md`: what it is (spec-driven MCP for the UniFi Local Integration API); the four tools (`unifi_list_entities`, `unifi_describe_entity`, `unifi_get`, `unifi_invoke`); the read-only stance and how to enable writes later; install/config via the env vars above; the TLS guidance (prefer `UNIFI_CA_CERT`); and the three-source spec cascade (fresh cache → live → stale-cache/bundled).
+Cover, in prose adapted from `../civi-mcp/README.md`: what it is (spec-driven MCP for the UniFi
+Local Integration API); the four tools (`unifi_list_entities`, `unifi_describe_entity`, `unifi_get`,
+`unifi_invoke`); the read-only stance and how to enable writes later; install/config via the env
+vars above; the TLS guidance (prefer `UNIFI_CA_CERT`); and the three-source spec cascade (fresh
+cache → live → stale-cache/bundled).
 
 - [ ] **Step 4: Full verify + commit**
 
@@ -1739,21 +1836,30 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ## Self-Review
 
 **Spec coverage:**
+
 - Spec-driven runtime interface, zero per-resource code → Tasks 6, 9, 10 ✓
 - Three-source cascade (fresh/live/stale/bundled) → Tasks 5, 7, 8 ✓
 - Four generic tools; `list_entities` = tags → Task 10 ✓
-- Read-only v1, two-place enforcement → EntityIndex `findReadOperation` (Task 6) + UnifiClient gate (Task 9) ✓
+- Read-only v1, two-place enforcement → EntityIndex `findReadOperation` (Task 6) + UnifiClient gate
+  (Task 9) ✓
 - Write seam (`unifi_invoke` defined, gated) → Task 10 ✓
 - Discoverability (list → describe → get) → Task 10 ✓
 - `X-API-KEY` auth → Tasks 3, 4 ✓
-- TLS: default verification; `UNIFI_CA_CERT` pin; `UNIFI_INSECURE_TLS` explicit opt-in + startup warn → Tasks 3 (config), 4 (`dispatcherFor`), 11 (cli warn) ✓
+- TLS: default verification; `UNIFI_CA_CERT` pin; `UNIFI_INSECURE_TLS` explicit opt-in + startup
+  warn → Tasks 3 (config), 4 (`dispatcherFor`), 11 (cli warn) ✓
 - Error handling (typed, boundary-caught, stderr) → Tasks 2, 10 ✓
 - Testing without a live controller → fixtures + injected deps throughout ✓
 - Bundled-spec maintenance script → Task 5 ✓
 - Stack matches civi-mcp; tooling reuse map → Tasks 1, 2 ✓
 - Project docs (README/LICENSE/.env.example) → Task 12 ✓
-- Release pipeline, CI, skill, MCPB packaging → deferred to the release-engineering plan (see Out-of-scope note) — intentionally not in this plan ✓
+- Release pipeline, CI, skill, MCPB packaging → deferred to the release-engineering plan (see
+  Out-of-scope note) — intentionally not in this plan ✓
 
-**Placeholder scan:** No `<SHA>` or CI placeholders remain (release engineering moved out). The bundled-spec source is a named commit pin (Task 5). No silent TODOs.
+**Placeholder scan:** No `<SHA>` or CI placeholders remain (release engineering moved out). The
+bundled-spec source is a named commit pin (Task 5). No silent TODOs.
 
-**Type consistency:** `EntityOperation` / `ResolvedSpec` / `EntitySummary` / `EntityDescribe` defined in Task 5, consumed unchanged in 6/9/10. `request(RequestInput)` (Task 4) consumed by Tasks 8, 9. `ToolResult` defined in Task 10 (`errors-to-result.ts`), re-exported via `tools.ts`. `buildResolvedSpec` + `EntityIndex` names consistent across 6/7/8/10/11. `UnifiClient.invoke(op, args)` signature consistent 9/10. ✓
+**Type consistency:** `EntityOperation` / `ResolvedSpec` / `EntitySummary` / `EntityDescribe`
+defined in Task 5, consumed unchanged in 6/9/10. `request(RequestInput)` (Task 4) consumed by Tasks
+8, 9. `ToolResult` defined in Task 10 (`errors-to-result.ts`), re-exported via `tools.ts`.
+`buildResolvedSpec` + `EntityIndex` names consistent across 6/7/8/10/11.
+`UnifiClient.invoke(op, args)` signature consistent 9/10. ✓
