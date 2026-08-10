@@ -63,6 +63,7 @@ surface would need either a hand-maintained descriptor or a different
 adapter. Its auth differs too (cookie/session vs `X-API-KEY`). Treat it as a
 separate surface behind the same registration seam, likely its own
 brainstorm → spec cycle.
+
 - Write operations — defined but gated off (`allowWrites: false`).
 - Caching of API *response data* (only the spec is cached).
 - Multi-controller support.

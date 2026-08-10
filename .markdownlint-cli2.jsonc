@@ -2,6 +2,11 @@
   // Rule config lives in .markdownlint.jsonc (so editors that don't speak
   // cli2 config still pick it up). This file carries only cli2-specific
   // settings.
+  //
+  // node_modules/dist/coverage are a backstop for running the CLI by hand: the
+  // hook only ever sees git-tracked files, whether from staged changes locally
+  // or `prek run --all-files` in CI. The remaining entries are load-bearing,
+  // because those files *are* tracked.
   "ignores": [
     "node_modules",
     "dist",
@@ -16,11 +21,5 @@
     // surface, so keep them out of repo-lint scope.
     "knowledge",
     "notes",
-    // TODO(phase-1-cleanup): spec and plan files have ~40 structural
-    // violations (mostly MD031/MD032 blanks-around-fences/lists, one
-    // MD024 duplicate heading, one MD029 ol-prefix). Fix those in a
-    // follow-up commit, then remove this exclusion. Robin's explicit
-    // intent is for docs to be linted.
-    "docs/superpowers",
   ],
 }

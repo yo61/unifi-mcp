@@ -1,18 +1,27 @@
 # Release Engineering Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development
+> (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use
+> checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Give `unifi-mcp` the yo61 "house" CI/release process — CI, prek hooks, commitlint, release-please, npm OIDC publishing as `@robinbowes/unifi-mcp`, supply-chain scanning, an AI review workflow, dependabot, a Taskfile, and `decisions/`/`quality/` dirs.
+**Goal:** Give `unifi-mcp` the yo61 "house" CI/release process — CI, prek hooks, commitlint,
+release-please, npm OIDC publishing as `@robinbowes/unifi-mcp`, supply-chain scanning, an AI review
+workflow, dependabot, a Taskfile, and `decisions/`/`quality/` dirs.
 
-**Architecture:** GitHub Actions workflows driven by a go-task `Taskfile` that wraps the existing pnpm scripts, plus release-please for automated versioning/publishing. Modelled on `../go-udap` and `../jobhound`; designed to backport to `civi-mcp`.
+**Architecture:** GitHub Actions workflows driven by a go-task `Taskfile` that wraps the existing
+pnpm scripts, plus release-please for automated versioning/publishing. Modelled on `../go-udap` and
+`../jobhound`; designed to backport to `civi-mcp`.
 
-**Tech Stack:** GitHub Actions, go-task, release-please, commitlint, prek, osv-scanner, syft/grype, pnpm, npm OIDC trusted publishing.
+**Tech Stack:** GitHub Actions, go-task, release-please, commitlint, prek, osv-scanner, syft/grype,
+pnpm, npm OIDC trusted publishing.
 
 ## Global Constraints
 
 - **Package name:** `@robinbowes/unifi-mcp` (scoped); `bin` stays `unifi-mcp`.
 - **Node matrix:** 22 and 24 (`engines: >=22`).
-- **Every third-party action pinned to a full commit SHA** with a `# vX.Y.Z` comment; `persist-credentials: false` on checkout; least-privilege `permissions:` per workflow/job. `zizmor` MUST pass on every workflow.
+- **Every third-party action pinned to a full commit SHA** with a `# vX.Y.Z` comment;
+  `persist-credentials: false` on checkout; least-privilege `permissions:` per workflow/job.
+  `zizmor` MUST pass on every workflow.
 - **Known-good pinned SHAs** (from `../jobhound` / `../go-udap`, current) — reuse verbatim:
   - `actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2`
   - `actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1`
@@ -22,16 +31,26 @@
   - `zizmorcore/zizmor-action@192e21d79ab29983730a13d1382995c2307fbcaa # v0.5.7`
   - `anthropics/claude-code-action@51ea8ea73a139f2a74ff649e3092c25a904aed7e # v1.0.123`
   - `github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3`
-- **Actions needing a fresh SHA pin** (not in the reference repos) — for each, resolve the SHA of the named version tag with `gh api /repos/<owner>/<repo>/git/ref/tags/<tag> --jq .object.sha` (deref annotated tags with a second call on the returned sha if needed) and pin it with a `# <tag>` comment:
+- **Actions needing a fresh SHA pin** (not in the reference repos) — for each, resolve the SHA of
+  the named version tag with `gh api /repos/<owner>/<repo>/git/ref/tags/<tag> --jq .object.sha`
+  (deref annotated tags with a second call on the returned sha if needed) and pin it with a
+  `# <tag>` comment:
   - `pnpm/action-setup` (target `v4`)
   - `actions/setup-node` (target `v4`)
   - `google/osv-scanner-action` (target its current release, e.g. `v2.x`)
   - `anchore/sbom-action` (current) · `anchore/scan-action` (current)
   - `softprops/action-gh-release` — NOT used (release-please creates the release)
-- **Secrets available:** `SEMANTIC_RELEASE_APP_CLIENT_ID` / `SEMANTIC_RELEASE_APP_PRIVATE_KEY` (org secrets, ALL repos). `CLAUDE_CODE_OAUTH_TOKEN` is NOT yet set (Robin adds it) — the Claude workflow must be written so a missing token skips rather than fails.
-- **npm publish = `npm publish` (not `pnpm publish`)** for OIDC trusted-publishing support; requires npm ≥ 11.5 (`npm install -g npm@latest` in the publish job) and `id-token: write`.
-- **Tooling the implementer needs locally:** `task` (go-task — `brew install go-task/tap/go-task`), `actionlint`, `zizmor`, `prek`. Validate each workflow with `actionlint <file>` and `zizmor <file>` before committing.
-- **Commits:** conventional-commit prefixes; sign commits (`commit.gpgsign` is true in this repo); end message bodies with the Co-Authored-By trailer. Work stays on branch `feat/release-engineering`.
+- **Secrets available:** `SEMANTIC_RELEASE_APP_CLIENT_ID` / `SEMANTIC_RELEASE_APP_PRIVATE_KEY` (org
+  secrets, ALL repos). `CLAUDE_CODE_OAUTH_TOKEN` is NOT yet set (Robin adds it) — the Claude
+  workflow must be written so a missing token skips rather than fails.
+- **npm publish = `npm publish` (not `pnpm publish`)** for OIDC trusted-publishing support; requires
+  npm ≥ 11.5 (`npm install -g npm@latest` in the publish job) and `id-token: write`.
+- **Tooling the implementer needs locally:** `task` (go-task — `brew install go-task/tap/go-task`),
+  `actionlint`, `zizmor`, `prek`. Validate each workflow with `actionlint <file>` and
+  `zizmor <file>` before committing.
+- **Commits:** conventional-commit prefixes; sign commits (`commit.gpgsign` is true in this repo);
+  end message bodies with the Co-Authored-By trailer. Work stays on branch
+  `feat/release-engineering`.
 
 ---
 
@@ -61,30 +80,39 @@ quality/criteria.md
 ### Task 1: Package identity
 
 **Files:**
+
 - Modify: `package.json`, `README.md`
 
 **Interfaces:**
-- Produces: published package name `@robinbowes/unifi-mcp`; `publishConfig` enabling public+provenance publish. Later tasks (release-please config, publish job) reference this exact name.
+
+- Produces: published package name `@robinbowes/unifi-mcp`; `publishConfig` enabling
+  public+provenance publish. Later tasks (release-please config, publish job) reference this exact
+  name.
 
 - [ ] **Step 1: Update `package.json` identity fields**
 
 Set `"name": "@robinbowes/unifi-mcp"`. Add (top level, near `license`):
+
 ```jsonc
   "repository": { "type": "git", "url": "git+https://github.com/yo61/unifi-mcp.git" },
   "homepage": "https://github.com/yo61/unifi-mcp#readme",
   "bugs": { "url": "https://github.com/yo61/unifi-mcp/issues" },
   "publishConfig": { "access": "public", "provenance": true },
 ```
+
 Leave `bin`, `version` (0.1.0), `files`, `scripts`, deps unchanged.
 
 - [ ] **Step 2: Update the README install name**
 
-In `README.md`, change any `npm install`/`npx` reference from `unifi-mcp` to `@robinbowes/unifi-mcp`. Leave the `unifi-mcp` **command** name (from `bin`) as-is; add a one-line note that the CLI command is `unifi-mcp` even though the package is scoped.
+In `README.md`, change any `npm install`/`npx` reference from `unifi-mcp` to
+`@robinbowes/unifi-mcp`. Leave the `unifi-mcp` **command** name (from `bin`) as-is; add a one-line
+note that the CLI command is `unifi-mcp` even though the package is scoped.
 
 - [ ] **Step 3: Verify**
 
 Run: `pnpm verify`
-Expected: green (name change doesn't affect build/tests). Also `node -e "JSON.parse(require('fs').readFileSync('package.json','utf8'))"` → no error.
+Expected: green (name change doesn't affect build/tests). Also
+`node -e "JSON.parse(require('fs').readFileSync('package.json','utf8'))"` → no error.
 
 - [ ] **Step 4: Commit**
 
@@ -103,11 +131,14 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 2: Taskfile + commitlint + hooks
 
 **Files:**
+
 - Create: `Taskfile.yml`, `commitlint.config.mjs`
 - Modify: `.pre-commit-config.yaml`
 
 **Interfaces:**
-- Produces: `task dev:check` (used by CI Task 3), `task smoke`, `task hooks-install`. commitlint config (used by CI Task 3 and the commit-msg hook).
+
+- Produces: `task dev:check` (used by CI Task 3), `task smoke`, `task hooks-install`. commitlint
+  config (used by CI Task 3 and the commit-msg hook).
 
 - [ ] **Step 1: Write `Taskfile.yml`**
 
@@ -193,6 +224,7 @@ export default {
 - [ ] **Step 3: Add actionlint + zizmor to `.pre-commit-config.yaml`**
 
 Append these repos to the existing `.pre-commit-config.yaml` (keep everything already there):
+
 ```yaml
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.7
@@ -203,14 +235,17 @@ Append these repos to the existing `.pre-commit-config.yaml` (keep everything al
     hooks:
       - id: zizmor
 ```
-(Resolve the current `rev:` tag for each at install time if newer; prek/pre-commit pins by tag here, not SHA — dependabot's `pre-commit` ecosystem keeps them current.)
+
+(Resolve the current `rev:` tag for each at install time if newer; prek/pre-commit pins by tag here,
+not SHA — dependabot's `pre-commit` ecosystem keeps them current.)
 
 - [ ] **Step 4: Verify**
 
 Run: `task dev:check`
 Expected: format-check, lint, typecheck, tests all pass (same as `pnpm verify`).
 Run: `prek run --all-files`
-Expected: all hooks pass (or auto-fix formatting; re-run clean). If `task` is not installed: `brew install go-task/tap/go-task`.
+Expected: all hooks pass (or auto-fix formatting; re-run clean). If `task` is not installed:
+`brew install go-task/tap/go-task`.
 
 - [ ] **Step 5: Commit**
 
@@ -226,9 +261,11 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 3: CI workflow
 
 **Files:**
+
 - Create: `.github/workflows/ci.yaml`
 
 **Interfaces:**
+
 - Consumes: `task dev:check` (Task 2), `commitlint.config.mjs` (Task 2).
 - Produces: the required status checks that gate PRs.
 
@@ -303,11 +340,14 @@ jobs:
 - [ ] **Step 2: Resolve the two `<PIN>` SHAs**
 
 For `pnpm/action-setup` and `actions/setup-node`, resolve and substitute the real SHA:
+
 ```bash
 gh api /repos/pnpm/action-setup/git/ref/tags/v4 --jq '.object.sha'
 gh api /repos/actions/setup-node/git/ref/tags/v4 --jq '.object.sha'
 ```
-Replace `<PIN v4>` with `<sha> # v4`. (If the tag is annotated, the returned sha is the tag object — deref with `gh api /repos/OWNER/REPO/git/tags/<sha> --jq .object.sha`.)
+
+Replace `<PIN v4>` with `<sha> # v4`. (If the tag is annotated, the returned sha is the tag object —
+deref with `gh api /repos/OWNER/REPO/git/tags/<sha> --jq .object.sha`.)
 
 - [ ] **Step 3: Validate**
 
@@ -328,9 +368,12 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 4: release-please config + Release workflow
 
 **Files:**
-- Create: `release-please-config.json`, `.release-please-manifest.json`, `.github/workflows/release.yaml`
+
+- Create: `release-please-config.json`, `.release-please-manifest.json`,
+  `.github/workflows/release.yaml`
 
 **Interfaces:**
+
 - Consumes: package name `@robinbowes/unifi-mcp` (Task 1).
 - Produces: automated Release PRs, GitHub Releases, and npm publishing.
 
@@ -372,7 +415,12 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ```json
 { ".": "0.1.0" }
 ```
-The current `package.json` version is `0.1.0` and `@robinbowes/unifi-mcp` is unpublished, so the first Release PR cuts the next version after `0.1.0` based on commits (a `feat:` → `0.2.0` given `bump-minor-pre-major`). If you want the very first published version to be exactly `0.1.0`, set this manifest to `"0.0.0"` and add a `"Release-As: 0.1.0"` note in one commit body before the first release; otherwise accept the computed bump. Record which you chose in the commit message.
+
+The current `package.json` version is `0.1.0` and `@robinbowes/unifi-mcp` is unpublished, so the
+first Release PR cuts the next version after `0.1.0` based on commits (a `feat:` → `0.2.0` given
+`bump-minor-pre-major`). If you want the very first published version to be exactly `0.1.0`, set
+this manifest to `"0.0.0"` and add a `"Release-As: 0.1.0"` note in one commit body before the first
+release; otherwise accept the computed bump. Record which you chose in the commit message.
 
 - [ ] **Step 3: Write `.github/workflows/release.yaml`**
 
@@ -445,7 +493,10 @@ jobs:
       - run: npm publish --provenance --access public
 ```
 
-Notes: `npm publish` (not `pnpm publish`) is used for OIDC trusted-publishing support; it triggers `prepublishOnly` (`pnpm verify && pnpm build`), which is why pnpm+node are set up in this job. No `NODE_AUTH_TOKEN` — npm authenticates via OIDC against the trusted publisher Robin configures on npmjs.
+Notes: `npm publish` (not `pnpm publish`) is used for OIDC trusted-publishing support; it triggers
+`prepublishOnly` (`pnpm verify && pnpm build`), which is why pnpm+node are set up in this job. No
+`NODE_AUTH_TOKEN` — npm authenticates via OIDC against the trusted publisher Robin configures on
+npmjs.
 
 - [ ] **Step 4: Resolve `<PIN>` SHAs (reuse the values from Task 3) and validate**
 
@@ -467,9 +518,11 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 5: Security workflow
 
 **Files:**
+
 - Create: `.github/workflows/security.yaml`
 
 **Interfaces:**
+
 - Produces: vuln + SBOM scan results in the Security tab.
 
 - [ ] **Step 1: Write `.github/workflows/security.yaml`**
@@ -559,7 +612,11 @@ gh api /repos/google/osv-scanner-action/releases/latest --jq '.tag_name'   # the
 gh api /repos/anchore/sbom-action/releases/latest --jq '.tag_name'
 gh api /repos/anchore/scan-action/releases/latest --jq '.tag_name'
 ```
-Pin each to the SHA of that tag (`gh api /repos/<owner>/<repo>/git/ref/tags/<tag> --jq .object.sha`). Confirm the input keys (`scan-args`, `sbom`, `severity-cutoff`, `output-format`, and the `sarif` output name) match that version's action.yml; adjust if the action's interface differs, and note any change.
+
+Pin each to the SHA of that tag
+(`gh api /repos/<owner>/<repo>/git/ref/tags/<tag> --jq .object.sha`). Confirm the input keys
+(`scan-args`, `sbom`, `severity-cutoff`, `output-format`, and the `sarif` output name) match that
+version's action.yml; adjust if the action's interface differs, and note any change.
 
 - [ ] **Step 3: Validate**
 
@@ -581,10 +638,13 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 6: Claude review workflow + Dependabot
 
 **Files:**
+
 - Create: `.github/workflows/claude-code-review.yaml`, `.github/dependabot.yaml`
 
 **Interfaces:**
-- Produces: AI review on PRs (inert until `CLAUDE_CODE_OAUTH_TOKEN` is set); grouped dependency updates.
+
+- Produces: AI review on PRs (inert until `CLAUDE_CODE_OAUTH_TOKEN` is set); grouped dependency
+  updates.
 
 - [ ] **Step 1: Write `.github/workflows/claude-code-review.yaml`**
 
@@ -623,7 +683,9 @@ jobs:
           allowed_bots: "semantic-release-pusher"
 ```
 
-Note the `vars.CLAUDE_REVIEW_ENABLED == 'true'` gate: the job stays skipped until Robin sets both the `CLAUDE_CODE_OAUTH_TOKEN` secret and a repo/org **variable** `CLAUDE_REVIEW_ENABLED=true`. Document this in the decision record (Task 7).
+Note the `vars.CLAUDE_REVIEW_ENABLED == 'true'` gate: the job stays skipped until Robin sets both
+the `CLAUDE_CODE_OAUTH_TOKEN` secret and a repo/org **variable** `CLAUDE_REVIEW_ENABLED=true`.
+Document this in the decision record (Task 7).
 
 - [ ] **Step 2: Write `.github/dependabot.yaml`**
 
@@ -661,9 +723,11 @@ updates:
 
 - [ ] **Step 3: Validate**
 
-Run: `actionlint .github/workflows/claude-code-review.yaml && zizmor .github/workflows/claude-code-review.yaml`
+Run:
+`actionlint .github/workflows/claude-code-review.yaml && zizmor .github/workflows/claude-code-review.yaml`
 Expected: no findings.
-Run: `python3 -c "import yaml,sys; yaml.safe_load(open('.github/dependabot.yaml'))"` (or `yq`) → no error.
+Run: `python3 -c "import yaml,sys; yaml.safe_load(open('.github/dependabot.yaml'))"` (or `yq`) → no
+error.
 
 - [ ] **Step 4: Commit**
 
@@ -679,10 +743,13 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ### Task 7: Standards dirs
 
 **Files:**
+
 - Create: `decisions/2026-07-05-release-engineering.md`, `quality/criteria.md`
 
 **Interfaces:**
-- Produces: the decision record + quality criteria per the global CLAUDE.md conventions. Documents the manual setup steps Robin must complete.
+
+- Produces: the decision record + quality criteria per the global CLAUDE.md conventions. Documents
+  the manual setup steps Robin must complete.
 
 - [ ] **Step 1: Write `decisions/2026-07-05-release-engineering.md`**
 
@@ -732,7 +799,9 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 - [ ] **Step 3: Verify markdownlint + commit**
 
-Run: `prek run markdownlint-cli2 --all-files` (or `pnpm exec markdownlint-cli2 "decisions/**" "quality/**"`) — fix any findings.
+Run: `prek run markdownlint-cli2 --all-files` (or
+`pnpm exec markdownlint-cli2 "decisions/**" "quality/**"`) — fix any findings.
+
 ```bash
 git add decisions quality
 git commit -m "docs: add release-engineering decision record and quality criteria
@@ -745,6 +814,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ## Self-Review
 
 **Spec coverage:**
+
 - Package identity (§1) → Task 1 ✓
 - Taskfile (§2) → Task 2 ✓
 - prek hooks + actionlint/zizmor (§3) → Task 2 ✓
@@ -756,9 +826,18 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 - Dependabot (§9) → Task 6 ✓
 - Standards dirs (§10) → Task 7 ✓
 - release-please config (§11) → Task 4 ✓
-- Decisions (Node matrix, security tooling, Taskfile-wraps-pnpm, MCPB-out) → reflected in Tasks 3/5/2 and the decision record (Task 7) ✓
+- Decisions (Node matrix, security tooling, Taskfile-wraps-pnpm, MCPB-out) → reflected in Tasks
+  3/5/2 and the decision record (Task 7) ✓
 
-**Placeholder scan:** The `<PIN …>` markers are intentional and each carries an explicit `gh api` resolution command + a `grep -n PIN` gate + zizmor enforcement, per the Global Constraints. The `.release-please-manifest.json` seed choice is presented as an explicit either/or with a recorded decision. No silent TODOs.
+**Placeholder scan:** The `<PIN …>` markers are intentional and each carries an explicit `gh api`
+resolution command + a `grep -n PIN` gate + zizmor enforcement, per the Global Constraints. The
+`.release-please-manifest.json` seed choice is presented as an explicit either/or with a recorded
+decision. No silent TODOs.
 
-**Type/name consistency:** `@robinbowes/unifi-mcp` used identically in Task 1 (package.json), Task 4 (release-please `package-name`, publish `environment.url`), and Task 7. `task dev:check` defined in Task 2, consumed in Task 3. The known-good action SHAs in Global Constraints are reused verbatim across Tasks 3/4/5/6. `CLAUDE_CODE_OAUTH_TOKEN` + `CLAUDE_REVIEW_ENABLED` handling consistent between Task 6 and the Task 7 decision record.
+**Type/name consistency:** `@robinbowes/unifi-mcp` used identically in Task 1 (package.json), Task 4
+(release-please `package-name`, publish `environment.url`), and Task 7. `task dev:check` defined in
+Task 2, consumed in Task 3. The known-good action SHAs in Global Constraints are reused verbatim
+across Tasks 3/4/5/6. `CLAUDE_CODE_OAUTH_TOKEN` + `CLAUDE_REVIEW_ENABLED` handling consistent
+between Task 6 and the Task 7 decision record.
+
 ```
