@@ -5,7 +5,10 @@
 [extend]
 useDefault = true
 
-[[allowlists]]
+# Singular [allowlist], matching gitleaks' own default config. The plural
+# [[allowlists]] form behaves identically here (verified), but upstream still
+# ships the singular one at top level — no reason to differ.
+[allowlist]
 description = """
 spec/integration.bundled.json is vendored, not authored here: scripts/update-spec.mjs
 downloads it from https://github.com/tmcpro/unifi-network-api and bundles it. Its
