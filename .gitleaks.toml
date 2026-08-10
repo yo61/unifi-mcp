@@ -15,4 +15,7 @@ not credentials for any controller of ours, so scanning them adds noise without 
 protection. Regenerating the spec would reintroduce any fingerprint-based suppression,
 hence a path allowlist rather than .gitleaksignore entries.
 """
-paths = ['''^spec/.*\.bundled\.json$''']
+# Not anchored with ^: gitleaks reports absolute paths when scanning a mounted
+# directory (/repo/spec/... in CI) and relative ones when scanning "." locally,
+# so a leading anchor matches in one context and silently fails in the other.
+paths = ['''(^|/)spec/.*\.bundled\.json$''']

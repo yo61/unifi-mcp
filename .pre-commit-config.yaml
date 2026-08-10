@@ -19,6 +19,14 @@ repos:
       - id: conventional-pre-commit
         stages: [commit-msg]
 
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      # Local protection only: this scans the staged diff, so it catches a secret
+      # as you commit it. It is a no-op on a fresh checkout (index == HEAD), which
+      # is why CI has a separate `secrets` job scanning the working tree.
+      - id: gitleaks
+
   - repo: https://github.com/DavidAnson/markdownlint-cli2
     rev: v0.23.2
     hooks:
