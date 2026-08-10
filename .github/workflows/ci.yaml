@@ -47,20 +47,50 @@ jobs:
         with:
           configFile: commitlint.config.mjs
 
-  zizmor:
-    name: zizmor
+  # Runs the same hooks contributors run locally (.pre-commit-config.yaml).
+  #
+  # SKIP covers the hooks the `check` job already runs, so they aren't executed
+  # twice. It also keeps this job free of a pnpm install: those hooks are
+  # `language: system` and shell out to pnpm, so without skipping them prek would
+  # need the full toolchain here just to duplicate work.
+  #
+  # `check` is deliberately NOT replaced by prek: its `pnpm test` runs the whole
+  # vitest suite, whereas the vitest hook excludes test/integration. Swapping them
+  # would quietly drop integration tests from CI.
+  #
+  # commitlint is at the commit-msg stage and `prek run` skips it automatically.
+  lint:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054 # v0.6.2
+      - uses: j178/prek-action@4e14d07f9231acabce116ccfca13b13dd9755ece # v3.0.0
         with:
-          # Don't upload SARIF to code scanning (needs security-events: write,
-          # which this job deliberately doesn't have); findings still fail the
-          # job via zizmor's exit code.
-          advanced-security: false
-          persona: regular
-          version: v1.26.1
+          prek-version: 0.4.13
+        env:
+          SKIP: oxfmt,oxlint,tsc,scripts-syntax,vitest
+
+  # The gitleaks pre-commit hook runs `gitleaks git --pre-commit --staged`, which
+  # diffs the index against HEAD. On a fresh checkout those are identical, so the
+  # hook is a silent no-op under `prek run --all-files` and cannot gate anything.
+  # Scan the working tree explicitly instead.
+  #
+  # Uses the MIT-licensed CLI directly rather than gitleaks-action, which has been
+  # proprietary since v2.0.0 and requires a GITLEAKS_LICENSE secret for
+  # organisation accounts.
+  #
+  # The image is pinned by digest (= v8.30.1) for the same reason actions are
+  # pinned by SHA.
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Scan working tree for secrets
+        run: |
+          set -euo pipefail
+          docker run --rm -v "$PWD:/repo" \
+            ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f \
+            dir /repo --redact --verbose
