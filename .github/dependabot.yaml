@@ -6,11 +6,12 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
-    # Pin the prefix rather than relying on Dependabot's auto-detection, so
-    # its commits satisfy commitlint now that they are no longer ignored.
+    # Route dependency bumps to the Dependencies changelog section.
+    # release-please picks a section by commit *type*, and the default
+    # `chore(deps)` is type `chore`, which the preset hides. No
+    # `include: scope` -- it would produce `deps(deps):`.
     commit-message:
-      prefix: "chore"
-      include: "scope"
+      prefix: "deps"
     groups:
       npm:
         patterns: ["*"]
@@ -25,11 +26,12 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
-    # Pin the prefix rather than relying on Dependabot's auto-detection, so
-    # its commits satisfy commitlint now that they are no longer ignored.
+    # Route dependency bumps to the Dependencies changelog section.
+    # release-please picks a section by commit *type*, and the default
+    # `chore(deps)` is type `chore`, which the preset hides. No
+    # `include: scope` -- it would produce `deps(deps):`.
     commit-message:
-      prefix: "chore"
-      include: "scope"
+      prefix: "deps"
     groups:
       actions:
         patterns: ["*"]
@@ -39,11 +41,12 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
-    # Pin the prefix rather than relying on Dependabot's auto-detection, so
-    # its commits satisfy commitlint now that they are no longer ignored.
+    # Route dependency bumps to the Dependencies changelog section.
+    # release-please picks a section by commit *type*, and the default
+    # `chore(deps)` is type `chore`, which the preset hides. No
+    # `include: scope` -- it would produce `deps(deps):`.
     commit-message:
-      prefix: "chore"
-      include: "scope"
+      prefix: "deps"
     groups:
       hooks:
         patterns: ["*"]
