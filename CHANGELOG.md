@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.2.3](https://github.com/yo61/unifi-mcp/compare/v0.2.2...v0.2.3) (2026-08-12)
+
+
+### Bug Fixes
+
+* **format:** give oxfmt a config it actually reads ([#52](https://github.com/yo61/unifi-mcp/issues/52)) ([3b9fa7e](https://github.com/yo61/unifi-mcp/commit/3b9fa7e1fbc7f0d182d6d3404ed9200325f2d1d6))
+
+
+### Dependencies
+
+* Bump the npm group across 1 directory with 5 updates ([#56](https://github.com/yo61/unifi-mcp/issues/56)) ([7508f63](https://github.com/yo61/unifi-mcp/commit/7508f63bc6a6d273650070a6e0bb1e9c2408f244))
+
+
+### Documentation
+
+* lint the superpowers specs and plans ([#50](https://github.com/yo61/unifi-mcp/issues/50)) ([8553ae6](https://github.com/yo61/unifi-mcp/commit/8553ae6462017cce64d2ccc24c40c6f3f2203be0))
+
 ## [0.2.2](https://github.com/yo61/unifi-mcp/compare/v0.2.1...v0.2.2) (2026-08-07)
 
 
