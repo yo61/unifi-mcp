@@ -18,6 +18,23 @@ repos:
     hooks:
       - id: conventional-pre-commit
         stages: [commit-msg]
+        # Keep this list in sync with `type-enum` in commitlint.config.mjs.
+        # The hook's default types omit `deps`, which release-please needs to
+        # route dependency bumps to their own changelog section. Without it
+        # this hook rejects a `deps:` commit that CI would accept.
+        args:
+          - build
+          - chore
+          - ci
+          - deps
+          - docs
+          - feat
+          - fix
+          - perf
+          - refactor
+          - revert
+          - style
+          - test
 
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.30.1
