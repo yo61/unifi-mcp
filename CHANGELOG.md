@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.2.4](https://github.com/yo61/unifi-mcp/compare/v0.2.3...v0.2.4) (2026-09-05)
+
+
+### Dependencies
+
+* bump fast-uri to 3.1.7 and qs to 6.16.0 ([7df0a31](https://github.com/yo61/unifi-mcp/commit/7df0a311aea57fea5fdbc1f1bf9025d358c3f98d))
+* bump github/codeql-action/upload-sarif in the actions group ([#64](https://github.com/yo61/unifi-mcp/issues/64)) ([07d1991](https://github.com/yo61/unifi-mcp/commit/07d199104afa6526bf6796775fa861ca0ab67faa))
+* bump the actions group with 2 updates ([#61](https://github.com/yo61/unifi-mcp/issues/61)) ([f6117ff](https://github.com/yo61/unifi-mcp/commit/f6117ff7930b29500df5e2d78f4681040465cda7))
+* bump the actions group with 2 updates ([#66](https://github.com/yo61/unifi-mcp/issues/66)) ([2618367](https://github.com/yo61/unifi-mcp/commit/2618367a07f0614348b98519c4dc8faec6c757d7))
+* bump the npm group with 3 updates ([#60](https://github.com/yo61/unifi-mcp/issues/60)) ([64a729a](https://github.com/yo61/unifi-mcp/commit/64a729a950ac19123f73e19277ea4baeaeca40eb))
+* bump the npm group with 3 updates ([#63](https://github.com/yo61/unifi-mcp/issues/63)) ([09e176e](https://github.com/yo61/unifi-mcp/commit/09e176e43a307bbc348c0b05fd8e63fb28e609c6))
+* bump the npm group with 3 updates ([#65](https://github.com/yo61/unifi-mcp/issues/65)) ([0d0d606](https://github.com/yo61/unifi-mcp/commit/0d0d60685ce121da1bdeb93815fcaa49fd7f336b))
+
+
+### Documentation
+
+* narrow the local/CI invariant in the commit-type record ([79ac966](https://github.com/yo61/unifi-mcp/commit/79ac966aba871bafc9802bc199a0457552bfd45f))
+* record the commit-type sync decision ([5b07642](https://github.com/yo61/unifi-mcp/commit/5b07642797d61d4edc48e2a72e4524c2733b21a0))
+
 ## [0.2.3](https://github.com/yo61/unifi-mcp/compare/v0.2.2...v0.2.3) (2026-08-12)
 
 
