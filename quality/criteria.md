@@ -24,6 +24,13 @@
 
 **Source:** release-engineering design 2026-07-05
 
-**Last triggered:** 2026-08-06 — scheduled Security run failed on five advisories
-in transitive dependencies of `@modelcontextprotocol/sdk` (PRs #34, #36). Both
-the osv-scanner and grype criteria fired.
+**Last triggered:** 2026-09-05 — six advisories in transitive dependencies:
+`fast-uri` 3.1.5 (four HIGH, via `ajv` <- `@readme/openapi-parser`) and `qs`
+6.15.3 (two MEDIUM, via `express`/`body-parser` <- `@modelcontextprotocol/sdk`).
+Both the osv-scanner and grype criteria fired. Cleared by a lockfile refresh to
+`fast-uri` 3.1.7 and `qs` 6.16.0 — no suppression needed, per
+`decisions/2026-08-06-fix-over-suppress-advisories.md`.
+
+Previously 2026-08-06 — scheduled Security run failed on five advisories in
+transitive dependencies of `@modelcontextprotocol/sdk` (PRs #34, #36). Both the
+osv-scanner and grype criteria fired.
