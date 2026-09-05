@@ -49,9 +49,14 @@ lost changelog routing decision, a slower feedback loop that pushes failures
 past the point where they are cheap to fix, or a code generator standing
 between two config files.
 
-Keeping both gates also preserves a real property: the local hook and CI check
-the same rule, so a commit that passes locally passes in CI. That is the
-property the missing `args` had quietly broken.
+Keeping both gates also preserves the intended type-list property: a type
+accepted by CI is accepted by the local hook too. That is the property the
+missing `args` had quietly broken.
+
+That is the whole of it. The hook validates the type and header shape, not
+commitlint's other rules, so passing it locally is not a guarantee CI will
+pass — `fix: subject.` clears the hook and fails commitlint on
+`subject-full-stop`.
 
 ## Trade-offs accepted
 
