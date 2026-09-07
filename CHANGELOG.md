@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.2.5](https://github.com/yo61/unifi-mcp/compare/v0.2.4...v0.2.5) (2026-09-07)
+
+
+### Dependencies
+
+* bump @readme/openapi-parser to 9.0.0 ([d3e97a7](https://github.com/yo61/unifi-mcp/commit/d3e97a79360a7525dee53b3ee7ce8b4967294112))
+* bump https://github.com/woodruffw/zizmor-pre-commit ([#70](https://github.com/yo61/unifi-mcp/issues/70)) ([14fba91](https://github.com/yo61/unifi-mcp/commit/14fba9177d06825877e7f2bf3c3cbb1c010a735a))
+* bump the actions group with 3 updates ([#72](https://github.com/yo61/unifi-mcp/issues/72)) ([5ff992d](https://github.com/yo61/unifi-mcp/commit/5ff992d07adcf641f12eed577a127dd38fa1488c))
+* bump the npm group with 6 updates ([#71](https://github.com/yo61/unifi-mcp/issues/71)) ([e3d31f6](https://github.com/yo61/unifi-mcp/commit/e3d31f69dabafc5f5c9210aba92f120f6808dd56))
+* move packageManager to pnpm 12.3.4 ([f14fe45](https://github.com/yo61/unifi-mcp/commit/f14fe45f7e9f88992056189d47c174195282ceb0))
+
+
+### Documentation
+
+* document the git hook install step ([320183d](https://github.com/yo61/unifi-mcp/commit/320183d1ae3d1982fba38e75437d9d27ccc31f6f))
+
 ## [0.2.4](https://github.com/yo61/unifi-mcp/compare/v0.2.3...v0.2.4) (2026-09-05)
 
 
