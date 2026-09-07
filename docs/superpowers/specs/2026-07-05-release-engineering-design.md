@@ -4,7 +4,9 @@
 **Status:** Approved design, pre-implementation
 **Superseded in part:** section 7's `osv-scan` job no longer scans
 `pnpm-lock.yaml` as it stands, and the "no lockfile-sync job" note in section 6
-no longer holds — pnpm 12's two-document lockfile changed both. This document
+no longer holds — pnpm 12's two-document lockfile changed both. `task
+hooks-install` (section 5) no longer names hook types itself, and installs
+post-checkout/post-merge/post-rewrite rather than pre-push. This document
 records the 2026-07-05 design; see `decisions/2026-09-07-pnpm-12-node-26.md` and
 `decisions/2026-09-07-sync-node-modules-on-checkout.md` for what runs today.
 **Issue:** [#2](https://github.com/yo61/unifi-mcp/issues/2)
