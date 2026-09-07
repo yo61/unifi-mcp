@@ -102,12 +102,18 @@ For use with an MCP client, point the client at the binary with stdio transport.
 
 ```sh
 pnpm install
+task hooks-install    # install the git hooks (once per clone, and after they change)
 pnpm dev              # run from source with stdio transport
 pnpm test             # unit + component tests
 pnpm verify           # format + lint + typecheck + test
 pnpm update-spec      # refresh the bundled spec from a live gateway
 pnpm smoke            # build, then exercise the tools against a live controller (.env)
 ```
+
+`task hooks-install` is not optional bookkeeping: besides the pre-commit and
+commit-msg checks, the hooks re-run `pnpm install --frozen-lockfile` after a
+checkout, merge or rebase, which is what keeps `node_modules` matching the
+lockfile for tools that read it directly (tsserver, ALE, `node dist/cli.js`).
 
 ### Smoke test
 
