@@ -8,7 +8,17 @@ repos:
       - id: end-of-file-fixer
       - id: check-added-large-files
       - id: check-json
+      # Hand-written YAML stays single-document: a stray `---` in a workflow or
+      # in dependabot.yaml is a mistake, and GitHub rejects it at runtime.
       - id: check-yaml
+        exclude: ^pnpm-lock\.yaml$
+      # pnpm 12 writes pnpm-lock.yaml as two YAML documents: the packageManager
+      # record first, then the dependency graph.
+      - id: check-yaml
+        name: check yaml (pnpm-lock.yaml, multi-document)
+        alias: check-yaml-lockfile
+        files: ^pnpm-lock\.yaml$
+        args: ["--allow-multiple-documents"]
       - id: check-merge-conflict
       - id: mixed-line-ending
         args: ["--fix=lf"]

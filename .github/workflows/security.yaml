@@ -22,6 +22,33 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # pnpm 12 writes pnpm-lock.yaml as two YAML documents -- a packageManager
+      # record (pnpm itself plus its eight @pnpm/exe.* platform builds), then the
+      # dependency graph. osv-scanner 2.5.1 reads only the first, so scanning the
+      # file as it stands reports 9 packages instead of 273 and still exits 0:
+      # the scan fails open. Reduce the file to the dependency document in place
+      # -- the checkout is disposable, and keeping the original path means SARIF
+      # locations still resolve to a file that exists in the repository, so
+      # code-scanning alerts keep their anchor.
+      #
+      # This drops pnpm's own packages from *this* job. sbom-scan below reads the
+      # whole lockfile through syft, so they stay covered by grype.
+      - name: Reduce pnpm-lock.yaml to its dependency document
+        run: |
+          set -euo pipefail
+          awk '/^---$/ { doc++; next } doc == 2 { print }' pnpm-lock.yaml > lock.tmp
+          # The packageManager document carries a `packages:` key of its own, so
+          # the guard has to assert coverage, not shape: if a future pnpm reorders
+          # the documents, drops back to one, or adds a third, this fails loudly
+          # instead of handing the scanner nine packages and passing.
+          # `|| true`: grep -c exits 1 on zero matches, which `set -e` would
+          # turn into a silent failure before the error message below.
+          count=$(grep -c 'resolution: {integrity:' lock.tmp || true)
+          if [ "$count" -lt 200 ]; then
+            echo "::error::lockfile split yielded $count packages, expected ~273"
+            exit 1
+          fi
+          mv lock.tmp pnpm-lock.yaml
       - id: osv
         continue-on-error: true
         uses: google/osv-scanner-action/osv-scanner-action@6e4298ebc4db23e847df9b2e2de2939d6f066c67 # v2.5.1
@@ -30,7 +57,9 @@ jobs:
             --lockfile=pnpm-lock.yaml
             --format=sarif
             --output=osv.sarif
-      - if: always() && github.event_name != 'pull_request'
+      # hashFiles guards the case where the reduce step failed: without it this
+      # runs anyway and buries that error under `Path does not exist: osv.sarif`.
+      - if: always() && github.event_name != 'pull_request' && hashFiles('osv.sarif') != ''
         uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
         with:
           sarif_file: osv.sarif
