@@ -1,4 +1,4 @@
-default_install_hook_types: [pre-commit, commit-msg]
+default_install_hook_types: [pre-commit, commit-msg, post-checkout, post-merge, post-rewrite]
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -51,6 +51,20 @@ repos:
 
   - repo: local
     hooks:
+      # `git pull`, a branch switch, or a new worktree can move package.json and
+      # pnpm-lock.yaml without touching node_modules, leaving the installed tree
+      # behind the lockfile. `pnpm run` self-heals, but anything resolving
+      # node_modules directly -- the editor's tsserver, ALE's oxlint, `node
+      # dist/cli.js` -- keeps using the old packages. Re-sync on checkout instead.
+      # Exit status is ignored by git, so a package.json/lockfile mismatch reports
+      # itself without blocking the checkout.
+      - id: pnpm-install
+        name: pnpm install (sync node_modules with the lockfile)
+        entry: pnpm install --frozen-lockfile
+        language: system
+        stages: [post-checkout, post-merge, post-rewrite]
+        always_run: true
+        pass_filenames: false
       - id: oxfmt
         name: oxfmt --check
         entry: pnpm oxfmt --check

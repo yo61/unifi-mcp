@@ -62,6 +62,9 @@ tasks:
       - prek run --all-files
 
   hooks-install:
-    desc: Install git hooks (pre-commit, commit-msg, pre-push)
+    desc: Install git hooks (types come from default_install_hook_types)
     cmds:
-      - prek install --hook-type pre-commit --hook-type commit-msg --hook-type pre-push
+      # No --hook-type flags: they override default_install_hook_types in
+      # .pre-commit-config.yaml, which is where the list belongs. Naming them
+      # here once cost the post-checkout node_modules sync its shim.
+      - prek install
