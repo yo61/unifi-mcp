@@ -73,7 +73,7 @@ jobs:
         with:
           prek-version: 0.4.13
         env:
-          SKIP: oxfmt,oxlint,tsc,scripts-syntax,vitest
+          SKIP: oxfmt,oxlint,tsc,scripts-syntax,vitest,pnpm-install
 
   # The gitleaks pre-commit hook runs `gitleaks git --pre-commit --staged`, which
   # diffs the index against HEAD. On a fresh checkout those are identical, so the
