@@ -148,6 +148,10 @@ Windows.
 }
 ```
 
+If the file already exists, merge the `unifi` key into the existing
+`mcpServers` object — pasting the block over the whole file drops any other
+servers you have configured.
+
 Use absolute paths. Claude Desktop is a GUI application and does not inherit a
 login shell's `PATH`, so a bare `node`, `npx`, or `unifi-mcp` fails to spawn.
 `command -v node` and `npm root -g` give the paths for your machine.
