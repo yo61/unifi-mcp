@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.6](https://github.com/yo61/unifi-mcp/compare/v0.2.5...v0.2.6) (2026-09-11)
+
+
+### Dependencies
+
+* bump hono to 4.13.7 ([a82394b](https://github.com/yo61/unifi-mcp/commit/a82394bc5e230ac75744846be0c5ade6b6f9ea58))
+
+
+### Documentation
+
+* document installing the server in an MCP client ([dc78bc7](https://github.com/yo61/unifi-mcp/commit/dc78bc76dead5ecbce4566db5d8c628cb498f4b2))
+* warn against replacing claude_desktop_config.json ([3e8f4d4](https://github.com/yo61/unifi-mcp/commit/3e8f4d40dc66b151c1da5ac8e143f35af22539de))
+
 ## [0.2.5](https://github.com/yo61/unifi-mcp/compare/v0.2.4...v0.2.5) (2026-09-07)
 
 
