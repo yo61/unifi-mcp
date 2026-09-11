@@ -24,7 +24,21 @@
 
 **Source:** release-engineering design 2026-07-05
 
-**Last triggered:** 2026-09-05 — six advisories in transitive dependencies:
+**Last triggered:** 2026-09-11 — three advisories in `hono` 4.13.0, reached via
+`@modelcontextprotocol/sdk` both directly and through `@hono/node-server`:
+`GHSA-gqvv-2mrq-wpjv` (`toSSG()` path traversal), `GHSA-crvj-82cr-hjcx` (query
+parser reads past the URL fragment) and `GHSA-g6gw-c38x-mqfc` (`parseBody()`
+memory exhaustion). All MEDIUM, all fixed in 4.13.5. Only the osv-scanner
+criterion fired; grype's cutoff is HIGH, so it passed throughout and this
+would have gone unseen had osv-scanner been the one to fail open. Cleared by a
+lockfile refresh to 4.13.7 — the SDK asks for `^4.11.4`, so no suppression and
+no `pnpm.overrides` were needed, per
+`decisions/2026-08-06-fix-over-suppress-advisories.md`. Unreachable at runtime
+for a stdio-only server, which bounds the exposure but does not clear the alert.
+Same transience caveat as the `fast-uri` entry below applies: the floor lives
+only in the lockfile.
+
+Previously 2026-09-05 — six advisories in transitive dependencies:
 `fast-uri` 3.1.5 (four HIGH, via `ajv` <- `@readme/openapi-parser`) and `qs`
 6.15.3 (two MEDIUM, via `express`/`body-parser` <- `@modelcontextprotocol/sdk`).
 Both the osv-scanner and grype criteria fired. Cleared by a lockfile refresh to
