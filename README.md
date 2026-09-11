@@ -42,7 +42,8 @@ The server resolves the OpenAPI spec in order:
 1. Fresh local cache (age < `UNIFI_SPEC_FRESHNESS_MS`, default 24 h)
 2. Live fetch from the gateway (`UNIFI_BASE_URL/proxy/network/integration/v1`)
 3. Stale local cache (if the live fetch fails)
-4. Bundled spec (shipped with the package as a last-resort fallback)
+4. Bundled spec (a static-inference draft, shipped with the package as a
+   last-resort fallback)
 
 Run `pnpm update-spec` to update the bundled spec from a live gateway.
 
@@ -96,7 +97,86 @@ node dist/cli.js      # or: unifi-mcp (after npm install -g @robinbowes/unifi-mc
 Note: The package is published as `@robinbowes/unifi-mcp` (scoped), but the CLI
 command is `unifi-mcp` — unchanged.
 
-For use with an MCP client, point the client at the binary with stdio transport.
+## Installing in an MCP client
+
+The transport is stdio: the client spawns the binary and speaks MCP over its
+stdin/stdout. The server reads configuration from the process environment only
+— it does not load `.env` — so the gateway address and API key must come from
+the client's own config block.
+
+### Claude Code
+
+```sh
+claude mcp add unifi -s user \
+  -e UNIFI_BASE_URL=https://192.168.1.1 \
+  -e UNIFI_API_KEY=your-integration-api-key \
+  -- npx -y @robinbowes/unifi-mcp
+```
+
+`-s user` makes the server available in every project; `-s local` (the default)
+limits it to the current one. Avoid `-s project` with a literal key — that scope
+writes to `.mcp.json`, which is committed. Confirm with `claude mcp list`.
+
+A global install drops the npx resolution from every launch:
+
+```sh
+npm install -g @robinbowes/unifi-mcp
+claude mcp add unifi -s user \
+  -e UNIFI_BASE_URL=https://192.168.1.1 \
+  -e UNIFI_API_KEY=your-integration-api-key \
+  -- unifi-mcp
+```
+
+### Claude Desktop
+
+Add an entry to `claude_desktop_config.json` and restart the app. It lives in
+`~/Library/Application Support/Claude/` on macOS and `%APPDATA%\Claude\` on
+Windows.
+
+```json
+{
+    "mcpServers": {
+        "unifi": {
+            "command": "/usr/local/bin/node",
+            "args": ["/usr/local/lib/node_modules/@robinbowes/unifi-mcp/dist/cli.js"],
+            "env": {
+                "UNIFI_BASE_URL": "https://192.168.1.1",
+                "UNIFI_API_KEY": "your-integration-api-key"
+            }
+        }
+    }
+}
+```
+
+Use absolute paths. Claude Desktop is a GUI application and does not inherit a
+login shell's `PATH`, so a bare `node`, `npx`, or `unifi-mcp` fails to spawn.
+`command -v node` and `npm root -g` give the paths for your machine.
+
+Other stdio clients take the same `command`/`args`/`env` shape — Cursor and
+Windsurf under `mcpServers`, Zed under `context_servers`.
+
+### From a local checkout
+
+```sh
+pnpm install && pnpm build
+claude mcp add unifi-dev \
+  -e UNIFI_BASE_URL=https://192.168.1.1 \
+  -e UNIFI_API_KEY=your-integration-api-key \
+  -- node /absolute/path/to/unifi-mcp/dist/cli.js
+```
+
+### Troubleshooting
+
+| Symptom                                    | Cause                                                                                       |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| Server exits at once with `fatal: ...`     | `UNIFI_BASE_URL` or `UNIFI_API_KEY` missing or malformed — the client config never set them |
+| `spawn ENOENT`                             | Relative command in a GUI client; use an absolute path                                      |
+| Tools load, every query fails on TLS       | Self-signed gateway certificate; set `UNIFI_CA_CERT` to the controller's CA                 |
+| Entity list looks unfamiliar or over-large | Gateway was unreachable at startup and the bundled draft spec was used as fallback          |
+
+For the last two, set `UNIFI_LOG_LEVEL=info` and read the client's server log:
+the server logs `spec resolved` with the source it used, and warns explicitly
+when it falls back to the bundled spec.
 
 ## Development
 
