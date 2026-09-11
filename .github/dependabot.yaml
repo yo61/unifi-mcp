@@ -1,4 +1,11 @@
 version: 2
+
+# Commit type decides whether an update ships. release-please treats every
+# visible changelog section as releasable, so `deps` both lists an update in
+# the changelog and cuts a patch release, while `chore` does neither. The line
+# is drawn at what reaches users: only updates that change the published
+# package use `deps`. See yo61/jobhound
+# decisions/2026-08-13-dependency-updates-and-releases.md.
 updates:
   - package-ecosystem: npm
     directory: "/"
@@ -6,14 +13,18 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
-    # Route dependency bumps to the Dependencies changelog section.
-    # release-please picks a section by commit *type*, and the default
-    # `chore(deps)` is type `chore`, which the preset hides. No
-    # `include: scope` -- it would produce `deps(deps):`.
+    # Runtime dependencies ship, so they keep `deps`. The dev group ships
+    # nothing, so `prefix-development` routes it to `chore(deps)`. The groups
+    # are split by dependency-type so every PR has an unambiguous prefix.
     commit-message:
       prefix: "deps"
+      prefix-development: "chore(deps)"
     groups:
-      npm:
+      npm-production:
+        dependency-type: "production"
+        patterns: ["*"]
+      npm-development:
+        dependency-type: "development"
         patterns: ["*"]
     ignore:
       # Hold TypeScript on 6.x until the toolchain (ty, oxlint/tsgolint, tsx)
@@ -26,12 +37,8 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
-    # Route dependency bumps to the Dependencies changelog section.
-    # release-please picks a section by commit *type*, and the default
-    # `chore(deps)` is type `chore`, which the preset hides. No
-    # `include: scope` -- it would produce `deps(deps):`.
     commit-message:
-      prefix: "deps"
+      prefix: "chore(deps)"
     groups:
       actions:
         patterns: ["*"]
@@ -41,12 +48,8 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
-    # Route dependency bumps to the Dependencies changelog section.
-    # release-please picks a section by commit *type*, and the default
-    # `chore(deps)` is type `chore`, which the preset hides. No
-    # `include: scope` -- it would produce `deps(deps):`.
     commit-message:
-      prefix: "deps"
+      prefix: "chore(deps)"
     groups:
       hooks:
         patterns: ["*"]
