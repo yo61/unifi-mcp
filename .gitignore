@@ -21,6 +21,8 @@ pnpm-debug.log*
 .env
 .env.*
 !.env.example
+# direnv config, holds real credentials — no dot, so .env.* misses it
+.envrc
 
 # OS / editor
 .DS_Store
