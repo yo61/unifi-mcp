@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.7](https://github.com/yo61/unifi-mcp/compare/v0.2.6...v0.2.7) (2026-09-24)
+
+
+### Dependencies
+
+* bump the npm-production group with 2 updates ([#82](https://github.com/yo61/unifi-mcp/issues/82)) ([ce51baf](https://github.com/yo61/unifi-mcp/commit/ce51baffce5553cc91c398b3aa1ea4ba9312de27))
+
+
+### Documentation
+
+* add parked legacy controller API design spec ([d5469da](https://github.com/yo61/unifi-mcp/commit/d5469da2ef55c5c0a28918287057a31b5dae7fed))
+
 ## [0.2.6](https://github.com/yo61/unifi-mcp/compare/v0.2.5...v0.2.6) (2026-09-11)
 
 
