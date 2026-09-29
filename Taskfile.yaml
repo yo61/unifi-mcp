@@ -9,36 +9,58 @@ tasks:
 
   dev:fmt:
     desc: Apply oxfmt
+    summary: >-
+      oxfmt over the tree, rewriting files in place. dev:fmt-check is the same rules without the
+      rewrite, and that is what the gate runs.
     cmds:
       - pnpm format
 
   dev:fmt-check:
     desc: Check formatting without rewriting
+    summary: >-
+      Fails if anything is unformatted, without touching a file — the form dev:check and the hooks
+      use, so a dirty tree cannot pass silently.
     cmds:
       - pnpm format:check
 
   dev:lint:
     desc: Run oxlint
+    summary: >-
+      oxlint over the tree. It reports and does not fix.
     cmds:
       - pnpm lint
 
   dev:typecheck:
     desc: Run tsc --noEmit
+    summary: >-
+      tsc --noEmit against tsconfig, which covers src/ only. Tests are checked by vitest and the
+      standalone scripts by dev:scripts-check, so no single task here type-checks everything.
     cmds:
       - pnpm typecheck
 
   dev:test:
     desc: Run the vitest suite
+    summary: >-
+      vitest run — one pass, not the watcher. It covers test/ only; src/ is what dev:typecheck
+      looks at.
     cmds:
       - pnpm test
 
   dev:scripts-check:
     desc: Syntax-check standalone scripts (tsconfig covers src/ only, vitest test/ only)
+    summary: >-
+      node --check over scripts/*.mjs, a parse check rather than a type check. It exists because
+      the standalone scripts fall between the other two tasks: tsconfig covers src/ and vitest
+      covers test/, so without this a syntax error in a script reaches you only when you run it.
     cmds:
       - pnpm check:scripts
 
   dev:check:
     desc: Full quality gate — format-check, lint, typecheck, scripts, tests
+    summary: >-
+      The whole gate in order: format-check, lint, typecheck, scripts, tests. It stops at the
+      first failure, so a later stage can still be broken once an earlier one passes. It uses
+      fmt-check rather than fmt, so it never rewrites a file.
     cmds:
       - task: dev:fmt-check
       - task: dev:lint
@@ -48,21 +70,38 @@ tasks:
 
   smoke:
     desc: Read-only smoke test against a live controller (.env)
+    summary: >-
+      Builds, then probes a real controller using the repo-root .env (UNIFI_BASE_URL,
+      UNIFI_API_KEY, and one of UNIFI_INSECURE_TLS or UNIFI_CA_CERT). It fails with instructions
+      if .env is missing, and prints the API key only as a character count. Nothing on the network
+      is mutated: UNIFI_ALLOW_WRITES is left as configured and the write probe expects to be
+      refused.
     cmds:
       - pnpm smoke
 
   update-spec:
     desc: Refresh the bundled OpenAPI spec
+    summary: >-
+      Fetches the upstream UniFi OpenAPI document from a pinned GitHub raw URL and rewrites
+      spec/integration.bundled.json from it. It needs the network, and the result is a file to
+      review and commit — it does not check that the rest of the code still matches the new spec.
     cmds:
       - pnpm update-spec
 
   hooks:
     desc: Run all prek hooks against every file
+    summary: >-
+      Runs every prek hook against every file, not just the staged ones — the way to check the
+      whole tree before pushing, rather than what a commit would check.
     cmds:
       - prek run --all-files
 
   hooks-install:
     desc: Install git hooks (types come from default_install_hook_types)
+    summary: >-
+      Installs the hooks. The types come from default_install_hook_types in
+      .pre-commit-config.yaml rather than from flags here, so adding a type there is enough. Run
+      once per clone.
     cmds:
       # No --hook-type flags: they override default_install_hook_types in
       # .pre-commit-config.yaml, which is where the list belongs. Naming them
