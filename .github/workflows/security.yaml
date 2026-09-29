@@ -23,11 +23,11 @@ jobs:
         with:
           persist-credentials: false
       # pnpm 12 writes pnpm-lock.yaml as two YAML documents -- a packageManager
-      # record (pnpm itself plus its eight @pnpm/exe.* platform builds), then the
-      # dependency graph. osv-scanner 2.5.1 reads only the first, so scanning the
-      # file as it stands reports 9 packages instead of 273 and still exits 0:
-      # the scan fails open. Reduce the file to the dependency document in place
-      # -- the checkout is disposable, and keeping the original path means SARIF
+      # record (pnpm itself plus its @pnpm/exe.* platform builds), then the
+      # dependency graph. osv-scanner reads only the first, so scanning the file
+      # as it stands reports a handful of packages and still exits 0: the scan
+      # fails open. Reduce the file to the dependency document in place -- the
+      # checkout is disposable, and keeping the original path means SARIF
       # locations still resolve to a file that exists in the repository, so
       # code-scanning alerts keep their anchor.
       #
@@ -36,16 +36,29 @@ jobs:
       - name: Reduce pnpm-lock.yaml to its dependency document
         run: |
           set -euo pipefail
-          awk '/^---$/ { doc++; next } doc == 2 { print }' pnpm-lock.yaml > lock.tmp
-          # The packageManager document carries a `packages:` key of its own, so
-          # the guard has to assert coverage, not shape: if a future pnpm reorders
-          # the documents, drops back to one, or adds a third, this fails loudly
+          # The guard asserts the split is lossless rather than comparing against
+          # a package count written down here: a literal goes stale every time
+          # the tree changes, and a threshold loose enough to survive that is too
+          # loose to catch a scanner reading the wrong document. Instead, require
+          # that every resolution lands in exactly one of the two documents and
+          # that the one we keep is the larger. A future pnpm that reorders the
+          # documents, collapses them into one, or adds a third then fails loudly
           # instead of handing the scanner nine packages and passing.
-          # `|| true`: grep -c exits 1 on zero matches, which `set -e` would
-          # turn into a silent failure before the error message below.
-          count=$(grep -c 'resolution: {integrity:' lock.tmp || true)
-          if [ "$count" -lt 200 ]; then
-            echo "::error::lockfile split yielded $count packages, expected ~273"
+          #
+          # `|| true`: grep -c exits 1 on zero matches, which `set -e` would turn
+          # into a silent failure before the error message below.
+          total=$(grep -c 'resolution: {integrity:' pnpm-lock.yaml || true)
+          awk '/^---$/ { doc++; next } doc == 2 { print }' pnpm-lock.yaml > lock.tmp
+          kept=$(grep -c 'resolution: {integrity:' lock.tmp || true)
+          dropped=$(awk '/^---$/ { doc++; next } doc == 1 { print }' pnpm-lock.yaml \
+            | grep -c 'resolution: {integrity:' || true)
+          echo "lockfile: $total resolutions, keeping $kept, dropping $dropped"
+          if [ "$total" -ne "$((kept + dropped))" ]; then
+            echo "::error::lockfile split lost resolutions: $total != $kept + $dropped"
+            exit 1
+          fi
+          if [ "$kept" -le "$dropped" ]; then
+            echo "::error::kept document holds $kept resolutions vs $dropped dropped; not the dependency graph"
             exit 1
           fi
           mv lock.tmp pnpm-lock.yaml
@@ -85,6 +98,22 @@ jobs:
           format: cyclonedx-json
           output-file: sbom.cdx.json
           artifact-name: sbom.cdx.json
+      # The osv-scan job above learned that a scanner can read part of a lockfile
+      # and still exit 0. Nothing asserted the same for this path, so state what
+      # currently holds: syft reads both documents, and the SBOM carries at least
+      # as many libraries as the lockfile has resolutions. The 80% floor leaves
+      # room for legitimate deduplication without admitting a scan that silently
+      # dropped a document.
+      - name: Assert the SBOM covers the dependency graph
+        run: |
+          set -euo pipefail
+          components=$(jq '[.components[]? | select(.type == "library")] | length' sbom.cdx.json)
+          locked=$(grep -c 'resolution: {integrity:' pnpm-lock.yaml || true)
+          echo "sbom: $components libraries, lockfile: $locked resolutions"
+          if [ "$components" -lt "$((locked * 8 / 10))" ]; then
+            echo "::error::SBOM holds $components libraries for $locked locked packages; syft under-reported"
+            exit 1
+          fi
       - id: grype
         continue-on-error: true
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
