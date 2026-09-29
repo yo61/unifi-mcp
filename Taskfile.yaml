@@ -5,7 +5,7 @@ tasks:
   default:
     desc: List available tasks
     cmds:
-      - task --list
+      - task --list-all
 
   dev:fmt:
     desc: Apply oxfmt
