@@ -93,8 +93,11 @@ tasks:
   hooks:
     desc: Run all prek hooks against every file
     summary: >-
-      Runs every prek hook against every file, not just the staged ones — the way to check the
-      whole tree before pushing, rather than what a commit would check.
+      Runs the prek hooks that apply at the default stage, against every file rather than just
+      the staged ones. Not every hook: conventional-pre-commit is stages: [commit-msg] and
+      pnpm-install is stages: [post-checkout, post-merge, post-rewrite], and `prek run
+      --all-files` without --stage skips both. Note also that format and format:check are plain
+      npm wrappers, so those work whether or not prek is installed.
     cmds:
       - prek run --all-files
 
