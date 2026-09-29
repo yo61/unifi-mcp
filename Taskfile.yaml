@@ -33,16 +33,18 @@ tasks:
   dev:typecheck:
     desc: Run tsc --noEmit
     summary: >-
-      tsc --noEmit against tsconfig, which covers src/ only. Tests are checked by vitest and the
-      standalone scripts by dev:scripts-check, so no single task here type-checks everything.
+      tsc --noEmit with no -p flag, so it resolves tsconfig.json, whose include covers src/**/*
+      AND test/**/* — tests are type-checked here too. Only tsconfig.build.json narrows to src/,
+      and that is used by the build script rather than this task. What falls outside both is
+      scripts/*.mjs, which dev:scripts-check parses.
     cmds:
       - pnpm typecheck
 
   dev:test:
     desc: Run the vitest suite
     summary: >-
-      vitest run — one pass, not the watcher. It covers test/ only; src/ is what dev:typecheck
-      looks at.
+      vitest run — one pass, not the watcher. It executes test/; note that dev:typecheck also
+      type-checks those files, so the two overlap rather than dividing the tree between them.
     cmds:
       - pnpm test
 
