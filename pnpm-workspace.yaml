@@ -1,2 +1,10 @@
 allowBuilds:
   esbuild: true
+
+# Advisory floors for transitive dependencies. Each is scoped to the major its
+# dependent declares, so it self-deactivates when upstream moves on rather than
+# holding the tree back. See decisions/2026-09-29-pin-advisory-floors.md.
+overrides:
+  fast-uri@^3: ^3.1.7
+  ip-address@^10: ^10.5.1
+  undici@^6: ^6.28.1
