@@ -19,12 +19,34 @@
 - No dependency with a known vuln reachable in pnpm-lock.yaml (osv-scanner).
 - No SBOM component with severity >= HIGH (grype).
 - Secrets never logged; TLS verification on by default.
+- A transitive version raised to clear an advisory is recorded as a scoped
+  `overrides` entry in `pnpm-workspace.yaml`, not left to the lockfile alone.
+  Promoted from proposed 2026-09-29 after the second `fast-uri` reversion; see
+  `decisions/2026-09-29-pin-advisory-floors.md`.
 
 **Severity:** blocking
 
 **Source:** release-engineering design 2026-07-05
 
-**Last triggered:** 2026-09-11 — three advisories in `hono` 4.13.0, reached via
+**Last triggered:** 2026-09-29 — five advisories across three transitive
+dependencies, each reported twice (osv-scanner by CVE, grype by GHSA), for ten
+open code-scanning alerts: `fast-uri` 3.1.6 (`GHSA-qw65-cvwx-89v3`,
+`GHSA-58mr-gqgx-xq4g`, both HIGH, fixed in 3.1.7), `ip-address` 10.4.0
+(`GHSA-rpw4-54j3-4h4q`, `GHSA-2vr4-cq9g-pvrc`, both MEDIUM, fixed in 10.5.1) and
+`undici` 6.28.0 (`GHSA-3wwx-pv8p-q78v`, MEDIUM, fixed in 6.28.1). Both criteria
+fired for `fast-uri`; the three MEDIUMs sat below grype's HIGH cutoff and only
+osv-scanner reported them, the same fail-open shape as the entry below.
+
+The `fast-uri` pair is a direct consequence of the transience noted in the
+2026-09-05 entry: 3.1.7 was reached by lockfile edit and reverted to 3.1.6 by
+PR #71 the next day, and 3.1.6 — recorded then as benign — is precisely the
+version both HIGH advisories name. Cleared by raising all three and pinning the
+floors as scoped overrides in `pnpm-workspace.yaml`, so this cannot silently
+revert a third time. The direct `undici` 8.10.2 was already patched and was not
+the alert's subject. Unreachable at runtime for a stdio-only server, which
+bounds the exposure but does not clear the alert.
+
+Previously 2026-09-11 — three advisories in `hono` 4.13.0, reached via
 `@modelcontextprotocol/sdk` both directly and through `@hono/node-server`:
 `GHSA-gqvv-2mrq-wpjv` (`toSSG()` path traversal), `GHSA-crvj-82cr-hjcx` (query
 parser reads past the URL fragment) and `GHSA-g6gw-c38x-mqfc` (`parseBody()`
@@ -69,7 +91,11 @@ document and asserts the package count before scanning. See
 
 - A scanner's coverage is asserted, not assumed: a scan reporting far fewer
   packages than the lockfile holds is a failure, not a pass. Prompted by the
-  2026-09-07 tooling gap.
-- A transitive version raised by hand is pinned in `pnpm.overrides`, or the
-  lockfile edit is recorded as transient. Prompted by the `fast-uri` 3.1.7
-  reversion.
+  2026-09-07 tooling gap. `security.yaml` already enforces this for osv-scanner
+  via its package-count guard, so adopting it would be recording existing
+  behaviour — but nothing asserts coverage for the grype path.
+
+Adopted 2026-09-29: the transitive-floor criterion above. Note the location it
+was proposed under, `pnpm.overrides` in `package.json`, is not read by pnpm 12
+— it warns and continues, so a floor written there would have looked applied
+and done nothing. The adopted wording names `pnpm-workspace.yaml`.
