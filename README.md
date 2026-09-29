@@ -45,7 +45,9 @@ The server resolves the OpenAPI spec in order:
 4. Bundled spec (a static-inference draft, shipped with the package as a
    last-resort fallback)
 
-Run `pnpm update-spec` to update the bundled spec from a live gateway.
+Run `pnpm update-spec` to refresh the bundled spec from the community
+OpenAPI mirror, which is pinned to a commit and checked against a recorded
+SHA-256 before it is parsed.
 
 ## Configuration
 
@@ -190,7 +192,7 @@ task hooks-install    # install the git hooks (once per clone, and after they ch
 pnpm dev              # run from source with stdio transport
 pnpm test             # unit + component tests
 pnpm verify           # format + lint + typecheck + test
-pnpm update-spec      # refresh the bundled spec from a live gateway
+pnpm update-spec      # refresh the bundled spec from the pinned mirror
 pnpm smoke            # build, then exercise the tools against a live controller (.env)
 ```
 

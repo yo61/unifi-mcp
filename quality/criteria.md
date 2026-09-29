@@ -23,6 +23,11 @@
   `overrides` entry in `pnpm-workspace.yaml`, not left to the lockfile alone.
   Promoted from proposed 2026-09-29 after the second `fast-uri` reversion; see
   `decisions/2026-09-29-pin-advisory-floors.md`.
+- Each scanner asserts its own coverage before its result is believed. Both
+  paths in `security.yaml` carry one: osv-scan requires the lockfile split to be
+  lossless and to keep the larger document, sbom-scan requires the SBOM to hold
+  at least 80% as many libraries as the lockfile has resolutions. Promoted from
+  proposed 2026-09-29.
 
 **Severity:** blocking
 
@@ -89,13 +94,22 @@ document and asserts the package count before scanning. See
 
 **Proposed criteria (not adopted — need review):**
 
-- A scanner's coverage is asserted, not assumed: a scan reporting far fewer
-  packages than the lockfile holds is a failure, not a pass. Prompted by the
-  2026-09-07 tooling gap. `security.yaml` already enforces this for osv-scanner
-  via its package-count guard, so adopting it would be recording existing
-  behaviour — but nothing asserts coverage for the grype path.
+- A third-party artifact vendored into the repository is fetched from an
+  immutable ref and verified against a recorded digest before use. Prompted by
+  `scripts/update-spec.mjs`, which tracked a branch with no integrity check
+  until 2026-09-29; `spec/integration.bundled.json` is currently the only such
+  artifact, so this is a rule for one file until a second appears.
+- grype's `severity-cutoff` is `high`, so a MEDIUM advisory can only ever fail
+  the build through osv-scanner. That single point of failure has now been
+  exercised twice (2026-09-11, 2026-09-29) without incident, but lowering the
+  cutoff to `medium` is a policy change with its own noise cost and has not been
+  weighed.
 
-Adopted 2026-09-29: the transitive-floor criterion above. Note the location it
-was proposed under, `pnpm.overrides` in `package.json`, is not read by pnpm 12
-— it warns and continues, so a floor written there would have looked applied
-and done nothing. The adopted wording names `pnpm-workspace.yaml`.
+Adopted 2026-09-29: the transitive-floor criterion and the scanner-coverage
+criterion above. On the first, note the location it was proposed under,
+`pnpm.overrides` in `package.json`, is not read by pnpm 12 — it warns and
+continues, so a floor written there would have looked applied and done nothing;
+the adopted wording names `pnpm-workspace.yaml`. On the second, the grype path
+was measured before it was asserted: syft reports 290 libraries against 274
+lockfile resolutions, so the assertion records behaviour that already held
+rather than fixing a live gap.
