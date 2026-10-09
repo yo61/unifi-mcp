@@ -33,7 +33,19 @@
 
 **Source:** release-engineering design 2026-07-05
 
-**Last triggered:** 2026-09-29 — five advisories across three transitive
+**Last triggered:** 2026-10-09 — three advisories, each reported twice, for six
+open code-scanning alerts: `@modelcontextprotocol/sdk` 1.30.1
+(`GHSA-6qxp-vccf-f47h`, HIGH, OAuth client may send credentials to a
+server-chosen authorization server, fixed in 1.31.0), `proxy-addr` 2.0.7
+(`GHSA-jqcg-44mw-7w3h`, CRITICAL, trust-subnet spoofing via IPv4-mapped IPv6,
+fixed in 2.0.8, via `express` <- the SDK) and `source-map-js` 1.2.1
+(`GHSA-68fv-2mgg-jv7q`, HIGH, event-loop DoS, fixed in 1.2.2, dev-only via
+`postcss` <- `vite` <- `vitest`). Both scanners fired on all three. The SDK is
+direct and was bumped to 1.32.1; the two transitive fixes were pinned as scoped
+overrides per the criterion above, its first application since promotion. The
+SDK's OAuth client and `express` are unreachable for a stdio-only server.
+
+Previously 2026-09-29 — five advisories across three transitive
 dependencies, each reported twice (osv-scanner by CVE, grype by GHSA), for ten
 open code-scanning alerts: `fast-uri` 3.1.6 (`GHSA-qw65-cvwx-89v3`,
 `GHSA-58mr-gqgx-xq4g`, both HIGH, fixed in 3.1.7), `ip-address` 10.4.0

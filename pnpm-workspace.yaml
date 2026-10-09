@@ -7,4 +7,6 @@ allowBuilds:
 overrides:
   fast-uri@^3: ^3.1.7
   ip-address@^10: ^10.5.1
+  proxy-addr@^2: ^2.0.8
+  source-map-js@^1: ^1.2.2
   undici@^6: ^6.28.1
