@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.2.7](https://github.com/yo61/unifi-mcp/compare/v0.2.6...v0.2.7) (2026-10-09)
+
+
+### Bug Fixes
+
+* **deps:** clear sdk, proxy-addr and source-map-js advisories ([d7ddab8](https://github.com/yo61/unifi-mcp/commit/d7ddab8920bcbfd11beea0a768825cb8154ac683))
+
+
+### Dependencies
+
+* bump the npm-production group with 2 updates ([#82](https://github.com/yo61/unifi-mcp/issues/82)) ([ce51baf](https://github.com/yo61/unifi-mcp/commit/ce51baffce5553cc91c398b3aa1ea4ba9312de27))
+* bump the npm-production group with 2 updates ([#95](https://github.com/yo61/unifi-mcp/issues/95)) ([b296a1d](https://github.com/yo61/unifi-mcp/commit/b296a1dd1a8d9c75a27b08d28c6b99c4bdea9571))
+* bump zod from 4.6.4 to 4.6.5 in the npm-production group ([#88](https://github.com/yo61/unifi-mcp/issues/88)) ([1d513da](https://github.com/yo61/unifi-mcp/commit/1d513da89328e091c0e29eadadaa5abae1e9a812))
+* raise fast-uri, ip-address and undici to clear advisories ([88af02f](https://github.com/yo61/unifi-mcp/commit/88af02ffc5872d36f15f849ec9d96bca1c9d81c3))
+
+
+### Documentation
+
+* add parked legacy controller API design spec ([d5469da](https://github.com/yo61/unifi-mcp/commit/d5469da2ef55c5c0a28918287057a31b5dae7fed))
+* correct the update-spec source claim and record decisions ([f2ab7a3](https://github.com/yo61/unifi-mcp/commit/f2ab7a3b9395112f9a37de228baa44edc604f4cd))
+* correct three claims the review caught ([171e275](https://github.com/yo61/unifi-mcp/commit/171e275e05c400e2f80669a2392d863f0c0845a5))
+* finish correcting the hook and CI claims ([cdec5bd](https://github.com/yo61/unifi-mcp/commit/cdec5bd9cc7707aae1626565594e022b26a44492))
+* give every task a summary ([d226610](https://github.com/yo61/unifi-mcp/commit/d2266100f345dbd2de402f39ef9391488ac94803))
+* record advisory-floor decision and criteria trigger ([1d45443](https://github.com/yo61/unifi-mcp/commit/1d45443b47721ae0ab03ed510fe10ff6dcc5b5ca))
+
 ## [0.2.6](https://github.com/yo61/unifi-mcp/compare/v0.2.5...v0.2.6) (2026-09-11)
 
 
