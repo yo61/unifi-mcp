@@ -1,3 +1,7 @@
+# Dependabot keeps npm, the action SHAs and the pre-commit hooks. Renovate (renovate.json5) keeps
+# the runner image, packageManager's pnpm and the tool versions CI installs. Each pin has one
+# owner.
+
 version: 2
 
 # Commit type decides whether an update ships. release-please treats every
@@ -13,6 +17,7 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
+      semver-major-days: 14
     # Runtime dependencies ship, so they keep `deps`. The dev group ships
     # nothing, so `prefix-development` routes it to `chore(deps)`. The groups
     # are split by dependency-type so every PR has an unambiguous prefix.
@@ -23,10 +28,14 @@ updates:
       npm-production:
         dependency-type: "production"
         patterns: ["*"]
+        update-types: ["minor", "patch"]
       npm-development:
         dependency-type: "development"
         patterns: ["*"]
+        update-types: ["minor", "patch"]
     ignore:
+      # packageManager's pnpm is Renovate's.
+      - dependency-name: "pnpm"
       # Hold TypeScript on 6.x until the toolchain (ty, oxlint/tsgolint, tsx)
       # supports the 7.0 native compiler. Re-evaluate before removing.
       - dependency-name: "typescript"
@@ -42,6 +51,7 @@ updates:
     groups:
       actions:
         patterns: ["*"]
+        update-types: ["minor", "patch"]
   - package-ecosystem: pre-commit
     directory: "/"
     schedule:
@@ -53,3 +63,4 @@ updates:
     groups:
       hooks:
         patterns: ["*"]
+        update-types: ["minor", "patch"]

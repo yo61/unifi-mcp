@@ -1,0 +1,56 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+
+  // Two bots update this repository, each owning different pins. Dependabot keeps npm, the
+  // workflows' action SHAs and the pre-commit hooks (.github/dependabot.yaml). Renovate owns the
+  // runner image, the annotated *_VERSION values in the workflows, and packageManager's pnpm in
+  // package.json, which CI's pnpm/action-setup reads. enabledManagers keeps it off everything
+  // Dependabot owns; github-actions runs only for runner images and npm only for
+  // packageManager. Renovate runs from yo61/infrastructure's workflow, whose cron is the only
+  // schedule; do not add a `schedule`.
+  extends: ["config:recommended", "customManagers:githubActionsVersions"],
+  enabledManagers: ["github-actions", "npm", "custom.regex"],
+
+  // Policy shared by every repository Renovate updates; keep the copies alike.
+  semanticCommits: "enabled",
+  dependencyDashboard: true,
+  minimumReleaseAge: "7 days",
+  minimumReleaseAgeBehaviour: "timestamp-optional",
+  prHourlyLimit: 0,
+  prConcurrentLimit: 10,
+  osvVulnerabilityAlerts: true,
+  vulnerabilityAlerts: {
+    semanticCommitType: "fix",
+    labels: ["security"],
+  },
+
+  packageRules: [
+    {
+      matchUpdateTypes: ["major"],
+      minimumReleaseAge: "14 days",
+    },
+    {
+      // Action SHAs are Dependabot's; only runs-on images are Renovate's.
+      matchManagers: ["github-actions"],
+      matchDatasources: ["!github-runners"],
+      enabled: false,
+    },
+    {
+      // npm dependencies are Dependabot's; only packageManager's pnpm is Renovate's.
+      matchManagers: ["npm"],
+      matchDepTypes: ["!packageManager"],
+      enabled: false,
+    },
+    {
+      matchManagers: ["npm"],
+      matchDepTypes: ["packageManager"],
+      // pnpm 12 records itself in pnpm-lock.yaml too; Renovate regenerates the lockfile with it.
+      semanticCommitType: "chore",
+      groupName: "pnpm",
+    },
+    {
+      matchFileNames: [".github/workflows/**"],
+      semanticCommitScope: "ci",
+    },
+  ],
+}
