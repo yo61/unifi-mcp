@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.8](https://github.com/yo61/unifi-mcp/compare/v0.2.7...v0.2.8) (2026-10-15)
+
+
+### Dependencies
+
+* bump pino from 10.3.1 to 10.4.0 in the npm-production group ([#100](https://github.com/yo61/unifi-mcp/issues/100)) ([d594872](https://github.com/yo61/unifi-mcp/commit/d594872d2e3679e8a3b31d088f5c19d6e6cc1b0e))
+
 ## [0.2.7](https://github.com/yo61/unifi-mcp/compare/v0.2.6...v0.2.7) (2026-10-09)
 
 
