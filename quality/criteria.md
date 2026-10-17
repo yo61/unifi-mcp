@@ -2,7 +2,7 @@
 
 **Criteria:**
 
-- Every workflow action is pinned to a full commit SHA with a version comment (zizmor enforces).
+- Every workflow action is pinned to a full commit SHA with a version comment (jactionlint enforces).
 - Conventional-commit types drive the CHANGELOG; no manual version edits.
 - Published package has provenance (npm --provenance via OIDC).
 
