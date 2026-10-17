@@ -63,5 +63,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       # npm >= 11.5 required for OIDC trusted publishing; newer than bundled version.
-      - run: npm install -g npm@latest # zizmor: ignore[adhoc-packages]
+      # jactionlint ignore=adhoc-packages
+      - run: npm install -g npm@latest
       - run: npm publish --provenance --access public
