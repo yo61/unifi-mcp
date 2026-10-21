@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.9](https://github.com/yo61/unifi-mcp/compare/v0.2.8...v0.2.9) (2026-10-21)
+
+
+### Bug Fixes
+
+* **deps:** clear hono and vite advisories ([#111](https://github.com/yo61/unifi-mcp/issues/111)) ([bd7fe6d](https://github.com/yo61/unifi-mcp/commit/bd7fe6d0ae579d9a119e8d02d874da32665a2ab8))
+
+
+### Dependencies
+
+* bump the npm-production group with 2 updates ([#107](https://github.com/yo61/unifi-mcp/issues/107)) ([b6c8990](https://github.com/yo61/unifi-mcp/commit/b6c89907f3c45f78d4dc09e2ef7880d12489a619))
+
 ## [0.2.8](https://github.com/yo61/unifi-mcp/compare/v0.2.7...v0.2.8) (2026-10-15)
 
 
