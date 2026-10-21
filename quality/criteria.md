@@ -33,7 +33,22 @@
 
 **Source:** release-engineering design 2026-07-05
 
-**Last triggered:** 2026-10-09 — three advisories, each reported twice, for six
+**Last triggered:** 2026-10-21 — five advisories in two transitive
+dependencies, found on the first push after a batch of grouped bumps. `hono`
+4.13.7 has two `serveStatic` bypasses, both MEDIUM, both fixed in 4.13.11, via
+`@modelcontextprotocol/sdk` and `@hono/node-server`: `GHSA-3g9q-qwv8-cxpf` /
+CVE-2026-109955 (middleware bypass), reported by osv-scanner, and
+`GHSA-5r4p-p66f-jhc7` / CVE-2026-111757 (path decoded twice), reported by
+grype. `vite` 8.1.3, dev-only via `vitest`, has `GHSA-587h-7wmj-h5pm` (HIGH) and
+`GHSA-698v-4r3x-3vcv` and `GHSA-r825-w8mm-5pxw` (MEDIUM), filed against vite
+and the `launch-editor` it bundles. grype fired only on the vite HIGH, so the
+MEDIUMs rested on osv-scanner alone. Cleared by two scoped overrides,
+`hono@^4: ^4.13.11` and `vite@^8: ^8.3.3`. vite fixed each minor separately
+(8.1.6, 8.2.4, 8.3.3), so a `^8.1.6` floor would still admit vulnerable 8.2.x
+and early 8.3.x. The `hono` floor retires the lockfile-only caveat in the
+2026-09-11 entry. `serveStatic` is unreachable for a stdio-only server.
+
+Previously 2026-10-09 — three advisories, each reported twice, for six
 open code-scanning alerts: `@modelcontextprotocol/sdk` 1.30.1
 (`GHSA-6qxp-vccf-f47h`, HIGH, OAuth client may send credentials to a
 server-chosen authorization server, fixed in 1.31.0), `proxy-addr` 2.0.7
@@ -113,7 +128,8 @@ document and asserts the package count before scanning. See
   artifact, so this is a rule for one file until a second appears.
 - grype's `severity-cutoff` is `high`, so a MEDIUM advisory can only ever fail
   the build through osv-scanner. That single point of failure has now been
-  exercised twice (2026-09-11, 2026-09-29) without incident, but lowering the
+  exercised three times (2026-09-11, 2026-09-29, 2026-10-21) without incident,
+  but lowering the
   cutoff to `medium` is a policy change with its own noise cost and has not been
   weighed.
 

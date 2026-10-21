@@ -6,7 +6,9 @@ allowBuilds:
 # holding the tree back. See decisions/2026-09-29-pin-advisory-floors.md.
 overrides:
   fast-uri@^3: ^3.1.7
+  hono@^4: ^4.13.11
   ip-address@^10: ^10.5.1
   proxy-addr@^2: ^2.0.8
   source-map-js@^1: ^1.2.2
   undici@^6: ^6.28.1
+  vite@^8: ^8.3.3
