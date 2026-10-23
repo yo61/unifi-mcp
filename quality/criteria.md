@@ -33,7 +33,16 @@
 
 **Source:** release-engineering design 2026-07-05
 
-**Last triggered:** 2026-10-21 — five advisories in two transitive
+**Last triggered:** 2026-10-23 — one advisory, two code-scanning alerts:
+`ip-address` 10.7.2 has `GHSA-rxp7-6hxx-x8q5` / CVE-2026-111997 (MEDIUM,
+`Address6` matches a zone identifier in quadratic time before its length check),
+fixed in 10.7.4, via `express-rate-limit` <- `@modelcontextprotocol/sdk`. Both
+scanners uploaded it; grype's HIGH cutoff meant only osv-scanner could fail the
+build. Cleared by raising the existing scoped floor `ip-address@^10` from
+`^10.5.1` to `^10.7.4`, the first time an override has been raised rather than
+added. `express-rate-limit` is unreachable for a stdio-only server.
+
+Previously 2026-10-21 — five advisories in two transitive
 dependencies, found on the first push after a batch of grouped bumps. `hono`
 4.13.7 has two `serveStatic` bypasses, both MEDIUM, both fixed in 4.13.11, via
 `@modelcontextprotocol/sdk` and `@hono/node-server`: `GHSA-3g9q-qwv8-cxpf` /
@@ -128,10 +137,9 @@ document and asserts the package count before scanning. See
   artifact, so this is a rule for one file until a second appears.
 - grype's `severity-cutoff` is `high`, so a MEDIUM advisory can only ever fail
   the build through osv-scanner. That single point of failure has now been
-  exercised three times (2026-09-11, 2026-09-29, 2026-10-21) without incident,
-  but lowering the
-  cutoff to `medium` is a policy change with its own noise cost and has not been
-  weighed.
+  exercised four times (2026-09-11, 2026-09-29, 2026-10-21, 2026-10-23) without
+  incident, but lowering the cutoff to `medium` is a policy change with its own
+  noise cost and has not been weighed.
 
 Adopted 2026-09-29: the transitive-floor criterion and the scanner-coverage
 criterion above. On the first, note the location it was proposed under,
