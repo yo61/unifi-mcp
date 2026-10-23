@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.10](https://github.com/yo61/unifi-mcp/compare/v0.2.9...v0.2.10) (2026-10-23)
+
+
+### Bug Fixes
+
+* **deps:** raise ip-address floor to clear GHSA-rxp7-6hxx-x8q5 ([#112](https://github.com/yo61/unifi-mcp/issues/112)) ([fa3b2d6](https://github.com/yo61/unifi-mcp/commit/fa3b2d6897df92928b9fda0d5778bb47ed35e4b1))
+
 ## [0.2.9](https://github.com/yo61/unifi-mcp/compare/v0.2.8...v0.2.9) (2026-10-21)
 
 
