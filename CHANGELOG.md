@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.11](https://github.com/yo61/unifi-mcp/compare/v0.2.10...v0.2.11) (2026-10-24)
+
+
+### Bug Fixes
+
+* **deps:** clear undici, fast-uri and body-parser advisories ([#114](https://github.com/yo61/unifi-mcp/issues/114)) ([5c3b3b0](https://github.com/yo61/unifi-mcp/commit/5c3b3b04f991625564bc9fc2883228267349fa44))
+
+
+### Documentation
+
+* **knowledge:** add knowledge directory with dependencies domain ([#115](https://github.com/yo61/unifi-mcp/issues/115)) ([c19b1eb](https://github.com/yo61/unifi-mcp/commit/c19b1ebb03aac3e39298acb45ca12483c8ee36fc))
+
 ## [0.2.10](https://github.com/yo61/unifi-mcp/compare/v0.2.9...v0.2.10) (2026-10-23)
 
 
