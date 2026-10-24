@@ -33,7 +33,23 @@
 
 **Source:** release-engineering design 2026-07-05
 
-**Last triggered:** 2026-10-23 — one advisory, two code-scanning alerts:
+**Last triggered:** 2026-10-24 — eight advisories, ten osv-scanner alerts, in
+three packages. `undici` has `GHSA-xjj6-f33q-929c` (HIGH, unhandled error on
+excessive content-encodings), `GHSA-4qv8-2p9j-2685` (MEDIUM, unbounded
+EventSource buffer) and, on 8.x only, `GHSA-f72v-6w45-q472` (MEDIUM, SRI bypass
+via mixed-case algorithm), against both the direct 8.11.2 and the transitive
+6.29.0 via `@apidevtools/json-schema-ref-parser`; fixed in 8.12.2 and 6.29.1.
+`fast-uri` 3.1.8 via `ajv` has four advisories (two MEDIUM, two LOW), all fixed
+in 3.1.9. `body-parser` 2.3.0 via `express` <- `@modelcontextprotocol/sdk` has
+`GHSA-27r3-jxmh-p828` (HIGH, trailing bytes after a compressed body), fixed in
+2.4.0. Cleared by bumping the direct `undici` to 8.12.3, raising the
+`undici@^6` and `fast-uri@^3` floors, and adding `body-parser@^2: ^2.4.0`;
+`express` asks for `^2.2.1`, so only the override holds the floor. This is the
+first time the direct `undici` itself was vulnerable. The npm package supplies
+only the `Agent` dispatcher; `src/http/request.ts` calls Node's global `fetch`,
+whose bundled undici (8.10.0 on Node 26.8.1) no lockfile scan can see.
+
+Previously 2026-10-23 — one advisory, two code-scanning alerts:
 `ip-address` 10.7.2 has `GHSA-rxp7-6hxx-x8q5` / CVE-2026-111997 (MEDIUM,
 `Address6` matches a zone identifier in quadratic time before its length check),
 fixed in 10.7.4, via `express-rate-limit` <- `@modelcontextprotocol/sdk`. Both
