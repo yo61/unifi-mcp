@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.12](https://github.com/yo61/unifi-mcp/compare/v0.2.11...v0.2.12) (2026-10-26)
+
+
+### Dependencies
+
+* bump zod from 4.6.6 to 4.6.7 in the npm-production group across 1 directory ([#117](https://github.com/yo61/unifi-mcp/issues/117)) ([38e9e12](https://github.com/yo61/unifi-mcp/commit/38e9e124f701df63e7c3274f8f93b54a0a9a5ab1))
+
 ## [0.2.11](https://github.com/yo61/unifi-mcp/compare/v0.2.10...v0.2.11) (2026-10-24)
 
 
