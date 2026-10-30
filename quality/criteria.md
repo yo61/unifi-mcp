@@ -33,7 +33,19 @@
 
 **Source:** release-engineering design 2026-07-05
 
-**Last triggered:** 2026-10-24 — eight advisories, ten osv-scanner alerts, in
+**Last triggered:** 2026-10-30 — two advisories, four code-scanning alerts, both
+MEDIUM and both reported by both scanners. `@hono/node-server` 2.1.0 has
+`GHSA-rmxm-3fg6-px4f` / CVE-2026-118663 (`serveStatic` decodes the path a second
+time, bypassing middleware on static paths), fixed in 2.1.3, no 1.x fix. `qs`
+6.16.0 has `GHSA-6pq8-jhm2-2vcw` / CVE-2026-110816 (`stringify` with
+`arrayFormat: 'comma'` throws on an element with a non-callable own `toString`),
+fixed in 6.16.1. Both via `@modelcontextprotocol/sdk`. Cleared by two scoped
+overrides, resolving to 2.1.5 and 6.16.1. The `@hono/node-server@^2` selector
+matches the SDK's `^1.19.9 || ^2.0.5`, and `qs@^6` also removes a duplicate:
+`express` held 6.16.0 under `^6.14.0` while `body-parser` 2.4.0 already required
+`^6.16.1`. `serveStatic` and `express` are unreachable for a stdio-only server.
+
+Previously 2026-10-24 — eight advisories, ten osv-scanner alerts, in
 three packages. `undici` has `GHSA-xjj6-f33q-929c` (HIGH, unhandled error on
 excessive content-encodings), `GHSA-4qv8-2p9j-2685` (MEDIUM, unbounded
 EventSource buffer) and, on 8.x only, `GHSA-f72v-6w45-q472` (MEDIUM, SRI bypass
