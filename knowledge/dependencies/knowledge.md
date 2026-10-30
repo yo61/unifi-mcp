@@ -14,6 +14,9 @@
   keeps any locked version that still satisfies the range; reaching the new one
   takes `pnpm update <pkg> --depth Infinity`.
   (`decisions/2026-08-06-fix-over-suppress-advisories.md`)
+- A scoped override selector matches a dependent's range by intersection:
+  `@hono/node-server@^2` applies to the SDK's `^1.19.9 || ^2.0.5` and replaces the
+  whole range, moving 2.1.0 to 2.1.5 on a plain `pnpm install`.
 - Grouped Dependabot bumps re-resolve transitives freely: `fast-uri` was raised
   to 3.1.7 by lockfile edit and dropped back to 3.1.6 the next day (PR #71).
 
