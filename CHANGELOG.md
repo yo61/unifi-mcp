@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.13](https://github.com/yo61/unifi-mcp/compare/v0.2.12...v0.2.13) (2026-10-30)
+
+
+### Bug Fixes
+
+* **deps:** clear @hono/node-server and qs advisories ([#121](https://github.com/yo61/unifi-mcp/issues/121)) ([eb07e21](https://github.com/yo61/unifi-mcp/commit/eb07e214e2e1c637903fb99630854f5f4be06920))
+
 ## [0.2.12](https://github.com/yo61/unifi-mcp/compare/v0.2.11...v0.2.12) (2026-10-26)
 
 
