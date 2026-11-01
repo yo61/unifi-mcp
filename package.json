@@ -50,8 +50,8 @@
     "prepublishOnly": "pnpm verify && pnpm build"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "1.32.1",
-    "@readme/openapi-parser": "9.1.0",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "@readme/openapi-parser": "10.0.0",
     "pino": "10.4.0",
     "undici": "8.12.3",
     "zod": "4.6.7"
