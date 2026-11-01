@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.14](https://github.com/yo61/unifi-mcp/compare/v0.2.13...v0.2.14) (2026-11-01)
+
+
+### Dependencies
+
+* bump the npm-production group with 2 updates ([#124](https://github.com/yo61/unifi-mcp/issues/124)) ([80c140e](https://github.com/yo61/unifi-mcp/commit/80c140e5f6d624e5ddf587bd562671da1defad7e))
+
 ## [0.2.13](https://github.com/yo61/unifi-mcp/compare/v0.2.12...v0.2.13) (2026-10-30)
 
 
