@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.15](https://github.com/yo61/unifi-mcp/compare/v0.2.14...v0.2.15) (2026-11-12)
+
+
+### Dependencies
+
+* bump undici from 8.12.3 to 8.12.4 in the npm-production group ([#132](https://github.com/yo61/unifi-mcp/issues/132)) ([8e73ebd](https://github.com/yo61/unifi-mcp/commit/8e73ebde1143469e2452d8b6db047b7981ab6920))
+
 ## [0.2.14](https://github.com/yo61/unifi-mcp/compare/v0.2.13...v0.2.14) (2026-11-01)
 
 
