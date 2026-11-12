@@ -5,6 +5,7 @@
   "include-component-in-tag": false,
   "bump-minor-pre-major": true,
   "bump-patch-for-minor-pre-major": false,
+  "exclude-paths": ["knowledge", "decisions", "quality"],
   "packages": {
     ".": {
       "package-name": "@robinbowes/unifi-mcp",
