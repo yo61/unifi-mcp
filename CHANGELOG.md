@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.16](https://github.com/yo61/unifi-mcp/compare/v0.2.15...v0.2.16) (2026-11-13)
+
+
+### Bug Fixes
+
+* **deps:** raise hono floors to clear 7 advisories ([#136](https://github.com/yo61/unifi-mcp/issues/136)) ([aa92f29](https://github.com/yo61/unifi-mcp/commit/aa92f29876fcc4a3ecddd807d50a8f5334bbc06c))
+
 ## [0.2.15](https://github.com/yo61/unifi-mcp/compare/v0.2.14...v0.2.15) (2026-11-12)
 
 
