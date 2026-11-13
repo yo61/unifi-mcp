@@ -33,7 +33,11 @@
 
 **Source:** release-engineering design 2026-07-05
 
-**Last triggered:** 2026-10-30 — two advisories, four code-scanning alerts, both
+**Last triggered:** 2026-11-13 — seven advisories, fourteen code-scanning
+alerts (osv-scanner + grype), max MEDIUM, all via `@modelcontextprotocol/sdk`:
+five in `hono` 4.13.13 (fixed 4.13.16), two in `@hono/node-server` 2.1.5 (fixed
+2.1.6). Cleared by raising the two existing floors; resolved to 4.13.18 and
+2.1.8. Previous trigger 2026-10-30 — two advisories, four code-scanning alerts, both
 MEDIUM and both reported by both scanners. `@hono/node-server` 2.1.0 has
 `GHSA-rmxm-3fg6-px4f` / CVE-2026-118663 (`serveStatic` decodes the path a second
 time, bypassing middleware on static paths), fixed in 2.1.3, no 1.x fix. `qs`
