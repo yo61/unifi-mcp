@@ -5,10 +5,10 @@ allowBuilds:
 # dependent declares, so it self-deactivates when upstream moves on rather than
 # holding the tree back. See decisions/2026-09-29-pin-advisory-floors.md.
 overrides:
-  "@hono/node-server@^2": ^2.1.3
+  "@hono/node-server@^2": ^2.1.6
   body-parser@^2: ^2.4.0
   fast-uri@^3: ^3.1.9
-  hono@^4: ^4.13.11
+  hono@^4: ^4.13.16
   ip-address@^10: ^10.7.4
   proxy-addr@^2: ^2.0.8
   qs@^6: ^6.16.1
