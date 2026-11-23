@@ -55,7 +55,7 @@ repos:
       - id: gitleaks
 
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.24.0
+    rev: v0.24.1
     hooks:
       - id: markdownlint-cli2
 
@@ -108,6 +108,6 @@ repos:
         pass_filenames: false
 
   - repo: https://github.com/jdx/jactionlint
-    rev: 9e87e8f34edfc00b849a27807e26eff9d00b936d # frozen: v2.5.0
+    rev: 72c00452809bcca05b8bc12acdcf15dd7a9c1c5e # frozen: v2.6.0
     hooks:
       - id: jactionlint
